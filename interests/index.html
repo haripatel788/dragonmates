@@ -1,2 +1,32 @@
-<!-- interests/index.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Interests List</title>
+</head>
+<body>
 
+  <h1>Enter Your Interests</h1>
+
+  <input type="text" id="interestInput" placeholder="Type an interest">
+  <button onclick="addInterest()">Add</button>
+
+  <h2>Interests</h2>
+
+  <script>
+    function addInterest() {
+      const input = document.getElementById("interestInput");
+      const value = input.value.trim();
+
+      if (value === "") return;
+
+      const li = document.createElement("li");
+      li.textContent = value;
+
+      document.getElementById("interestList").appendChild(li);
+      input.value = "";
+    }
+  </script>
+
+</body>
+</html>
