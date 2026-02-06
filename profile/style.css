@@ -1,0 +1,48 @@
+/* Custom styles that complement Tailwind CSS */
+
+/* Smooth transitions for interactive elements */
+* {
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Custom notification animations */
+@keyframes slideIn {
+    from {
+        transform: translateX(400px);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes slideOut {
+    from {
+        transform: translateX(0);
+        opacity: 1;
+    }
+    to {
+        transform: translateX(400px);
+        opacity: 0;
+    }
+}
+
+/* Smooth scrolling */
+html {
+    scroll-behavior: smooth;
+}
+
+/* Custom focus styles for accessibility */
+button:focus-visible,
+a:focus-visible {
+    outline: 2px solid #FFC600;
+    outline-offset: 2px;
+}
+
+/* Print styles */
+@media print {
+    .no-print {
+        display: none;
+    }
+}

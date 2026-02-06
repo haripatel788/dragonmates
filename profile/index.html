@@ -7,35 +7,34 @@
     <link rel="stylesheet" href="style.css">
 
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'drexel-blue': '#07294D',
+                        'drexel-gold': '#FFC600',
+                        'drexel-light-blue': '#1E4D7B',
+                        'drexel-dark-blue': '#041E42',
+                    }
+                }
+            }
+        }
+    </script>
 </head>
 <body>
-    <header>
-        <h1>DragonMate Profile</h1>
-    </header>
-    <main>
-        <section class="profile-header">
-            <img src="profile-picture.jpg" alt="Profile Picture" class="profile-picture">
-            <h2 class="profile-name">John Doe</h2>
-            <p class="profile-location">Location: Dragon Valley</p>
-        </section>
-        <section class="profile-details">
-            <h3>About Me</h3>
-            <p>Hello! I'm a dragon enthusiast looking for a roommate who shares my passion for dragons and adventure. I enjoy exploring caves, collecting rare artifacts, and cooking fiery meals.</p>
-        </section>
-        <section class="preferences">
-            <h3>Roommate Preferences</h3>
-            <ul>
-                <li>Non-smoker</li>
-                <li>Loves dragons</li>
-                <li>Enjoys outdoor activities</li>
-            </ul>
-        </section>
-        <section class="contact">
-            <h3>Contact</h3>
-            <p>Email: johndoe@example.com</p>
-            <p>Phone: (123) 456-7890</p>
-        </section>
-    </main>
+    <div class="bg-gradient-to-br from-gray-50 to bg-gray-100 min-h-screen p-5">
+        <header class="flex items-cnter gap-4 mb-6 p-4 bg-white rounded-xl shadow-sm">
+            <button class="flex items-center gap-2 text-drexel-blue font-medium px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors" onclick="goBack()">
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                    <path d="M12.5 15L7.5 10L12.5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                Back
+            </button>
+
+            <h1 class="text-2xl font-bold text-drexel-blue flex-1">Student Profile</h1>
+        </header>
+    </div>
     <script src="script.js"></script>
 </body>
 </html>
