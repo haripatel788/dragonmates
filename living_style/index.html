@@ -1,9 +1,69 @@
 <!DOCTYPE html>
 <html>
+<head>
+    <title>Living Style & Preferences</title>
+    <link rel="stylesheet" href="style.css">
+</head>
 <body>
 
-<h1>Dragonmates First Heading</h1>
-<p>Living Preferences Page</p>
+<h1>Living Style & Preferences</h1>
 
+<form id="prefsForm">
+
+    <label>Sleep Schedule:</label>
+    <select id="sleepSchedule">
+        <option value="">Select...</option>
+        <option value="early">Early Sleeper</option>
+        <option value="middle">Normal</option>
+        <option value="late">Night Owl</option>
+    </select>
+
+    <label>Cleanliness:</label>
+    <select id="cleanliness">
+        <option value="">Select...</option>
+        <option value="low">Relaxed</option>
+        <option value="medium">Moderate</option>
+        <option value="high">Very Clean</option>
+    </select>
+
+    <label>Noise Preference:</label>
+    <select id="noise">
+        <option value="">Select...</option>
+        <option value="quiet">Quiet</option>
+        <option value="moderate">Moderate</option>
+        <option value="loud">Loud / Social</option>
+    </select>
+
+    <label>Guests:</label>
+    <select id="guests">
+        <option value="">Select...</option>
+        <option value="rare">Rarely</option>
+        <option value="sometimes">Sometimes</option>
+        <option value="often">Often</option>
+    </select>
+
+    <label>Pets:</label>
+    <select id="pets">
+        <option value="">Select...</option>
+        <option value="no">No pets</option>
+        <option value="maybe">Maybe</option>
+        <option value="yes">I have / want pets</option>
+    </select>
+
+    <label>Interests (comma separated):</label>
+    <input type="text" id="interests" placeholder="gaming, gym, cooking">
+
+    <button type="button" onclick="savePreferences()">Save Preferences</button>
+    <button type="button" onclick="loadPreferences()">Load Saved</button>
+
+</form>
+
+<h2>Your Saved Profile</h2>
+<div id="profileDisplay">No profile saved yet.</div>
+
+<h2>Matching Result (Stub)</h2>
+<div id="matchResult">Matching not calculated yet.</div>
+
+<script src="script.js"></script>
 </body>
 </html>
