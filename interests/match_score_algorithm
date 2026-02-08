@@ -1,0 +1,29 @@
+Firstly, check dealbreakers if any of them fails the match score should be set to 0.
+
+Lifestyle should make up 70% of the score.
+intrests should make up 30% of the score
+
+For each of the scores we do similarity= 1- (abs((FirstPersonOption- SecondPersonoption)/4))
+then add the scores.
+
+multiply that score by these weights:
+
+Cleanliness: 15
+Sleep Schedule: 12
+Noise Tolerance: 10
+Guests Frequency: 10
+Cooking Habits: 8
+Time at Home: 15
+Temperature Preference: 10
+
+For the intrests:
+Note: we should keep these small so it doesn't dominate tthe sccore
+Same major/field: +7
+Same year: +4, +3 if within 1 year
+Shared hobbies: +2 each (max +8)
+Gym interest match: +3
+Media (music/TV/gaming) match: +2 
+Same personality type: +4,+2 if either is ambivert
+Cap at 30.
+
+Add the intrests and lifestyle scores to get final match score
