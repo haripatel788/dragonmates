@@ -1,0 +1,16 @@
+{
+  "name": "dragonmates",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://gitlab.cci.drexel.edu/cid/2526/ws1023/60/gd5/dragonmates.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": ""
+}
