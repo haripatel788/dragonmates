@@ -9,7 +9,7 @@
         async
         crossorigin="anonymous"
         data-clerk-publishable-key="pk_test_a2V5LXRpY2stNzQuY2xlcmsuYWNjb3VudHMuZGV2JA"
-        src="https://key-tick-74.clerk.accounts.dev/npm/@clerk/clerk-js@latest/dist/clerk.browser.js"
+        src="https://key-tick-74.clerk.accounts.dev/npm/@clerk/clerk-js@5/dist/clerk.browser.js"
         type="text/javascript"
     ></script>
     <script>
@@ -37,7 +37,8 @@
                 </svg>
                 Back
             </button>
-            <h1 class="text-2xl font-bold text-drexel-blue flex-1">Student Profile</h1>
+            <h1 class="text-2xl font-bold text-drexel-blue flex-1">My Profile</h1>
+            <a href="/browse" class="px-4 py-2 text-drexel-blue font-medium rounded-lg hover:bg-gray-100 transition-colors">Browse Roommates</a>
             <button class="flex items-center gap-2 text-red-600 font-medium px-3 py-2 rounded-lg hover:bg-red-50 transition-colors" onclick="signOut()">
                 <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
                     <path d="M7 17H4C3.46957 17 2.96086 16.7893 2.58579 16.4142C2.21071 16.0391 2 15.5304 2 15V5C2 4.46957 2.21071 3.96086 2.58579 3.58579C2.96086 3.21071 3.46957 3 4 3H7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -55,7 +56,7 @@
                 </div>
                 <div class="flex-1 min-w-[250px]">
                     <h2 class="text-4xl font-bold text-white mb-1" id="profileName">Student Name</h2>
-                    <p class="text-lg text-drexel-gold font-medium mb-1" id="profileMajor">Major</p>
+                    <p class="text-lg text-drexel-gold font-medium mb-1" id="profileMajor">—</p>
                     <p class="text-white/90 mb-4" id="profileYear">Year • Age</p>
                     <div class="flex gap-2 flex-wrap">
                         <span class="px-4 py-1.5 bg-white/20 backdrop-blur-sm text-white rounded-full text-sm font-medium" id="housingTag">Looking for Housing</span>
@@ -93,33 +94,75 @@
                     <div class="w-1 h-6 bg-drexel-gold rounded"></div>
                     Lifestyle Preferences
                 </h3>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="lifestyleGrid">
                     <div class="flex items-center gap-3 p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors">
                         <span class="text-3xl">🛌</span>
                         <div class="flex-1">
                             <div class="text-xs text-gray-600 font-medium mb-0.5">Sleep Schedule</div>
-                            <div class="text-base font-semibold text-drexel-blue" id="sleepSchedule">Night Owl</div>
+                            <div class="text-base font-semibold text-drexel-blue" id="sleepSchedule">—</div>
                         </div>
                     </div>
                     <div class="flex items-center gap-3 p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors">
                         <span class="text-3xl">🎵</span>
                         <div class="flex-1">
-                            <div class="text-xs text-gray-600 font-medium mb-0.5">Noise Level</div>
-                            <div class="text-base font-semibold text-drexel-blue" id="noiseLevel">Moderate</div>
+                            <div class="text-xs text-gray-600 font-medium mb-0.5">Noise Tolerance</div>
+                            <div class="text-base font-semibold text-drexel-blue" id="noiseLevel">—</div>
                         </div>
                     </div>
                     <div class="flex items-center gap-3 p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors">
                         <span class="text-3xl">✨</span>
                         <div class="flex-1">
                             <div class="text-xs text-gray-600 font-medium mb-0.5">Cleanliness</div>
-                            <div class="text-base font-semibold text-drexel-blue" id="cleanliness">Very Clean</div>
+                            <div class="text-base font-semibold text-drexel-blue" id="cleanliness">—</div>
                         </div>
                     </div>
                     <div class="flex items-center gap-3 p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors">
                         <span class="text-3xl">👥</span>
                         <div class="flex-1">
-                            <div class="text-xs text-gray-600 font-medium mb-0.5">Guests</div>
-                            <div class="text-base font-semibold text-drexel-blue" id="guests">Occasionally</div>
+                            <div class="text-xs text-gray-600 font-medium mb-0.5">Guests Frequency</div>
+                            <div class="text-base font-semibold text-drexel-blue" id="guests">—</div>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-3 p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors">
+                        <span class="text-3xl">🍳</span>
+                        <div class="flex-1">
+                            <div class="text-xs text-gray-600 font-medium mb-0.5">Cooking Habits</div>
+                            <div class="text-base font-semibold text-drexel-blue" id="cookingHabits">—</div>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-3 p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors">
+                        <span class="text-3xl">🏠</span>
+                        <div class="flex-1">
+                            <div class="text-xs text-gray-600 font-medium mb-0.5">Time at Home</div>
+                            <div class="text-base font-semibold text-drexel-blue" id="timeAtHome">—</div>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-3 p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors">
+                        <span class="text-3xl">🌡️</span>
+                        <div class="flex-1">
+                            <div class="text-xs text-gray-600 font-medium mb-0.5">Temperature</div>
+                            <div class="text-base font-semibold text-drexel-blue" id="temperaturePref">—</div>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-3 p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors">
+                        <span class="text-3xl">🎭</span>
+                        <div class="flex-1">
+                            <div class="text-xs text-gray-600 font-medium mb-0.5">Personality</div>
+                            <div class="text-base font-semibold text-drexel-blue" id="personality">—</div>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-3 p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors">
+                        <span class="text-3xl">🏋️</span>
+                        <div class="flex-1">
+                            <div class="text-xs text-gray-600 font-medium mb-0.5">Gym / Fitness</div>
+                            <div class="text-base font-semibold text-drexel-blue" id="gymInterest">—</div>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-3 p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors">
+                        <span class="text-3xl">🎮</span>
+                        <div class="flex-1">
+                            <div class="text-xs text-gray-600 font-medium mb-0.5">Music / TV / Gaming</div>
+                            <div class="text-base font-semibold text-drexel-blue" id="mediaInterest">—</div>
                         </div>
                     </div>
                 </div>
@@ -130,36 +173,45 @@
                     Interests & Hobbies
                 </h3>
                 <div class="flex flex-wrap gap-3" id="interestsContainer">
-                    <span class="px-5 py-2.5 bg-gradient-to-br from-drexel-blue to-drexel-light-blue text-white rounded-full font-medium hover:-translate-y-0.5 transition-transform cursor-default">🎮 Gaming</span>
-                    <span class="px-5 py-2.5 bg-gradient-to-br from-drexel-blue to-drexel-light-blue text-white rounded-full font-medium hover:-translate-y-0.5 transition-transform cursor-default">📚 Reading</span>
-                    <span class="px-5 py-2.5 bg-gradient-to-br from-drexel-blue to-drexel-light-blue text-white rounded-full font-medium hover:-translate-y-0.5 transition-transform cursor-default">🏋️ Fitness</span>
-                    <span class="px-5 py-2.5 bg-gradient-to-br from-drexel-blue to-drexel-light-blue text-white rounded-full font-medium hover:-translate-y-0.5 transition-transform cursor-default">🎬 Movies</span>
-                    <span class="px-5 py-2.5 bg-gradient-to-br from-drexel-blue to-drexel-light-blue text-white rounded-full font-medium hover:-translate-y-0.5 transition-transform cursor-default">🍳 Cooking</span>
+                    <span class="text-gray-400 text-sm" id="interestsEmpty">Add preferences in <a href="/interests" class="text-drexel-blue font-medium hover:underline">Roommate Preferences</a></span>
                 </div>
             </div>
 
             <div class="p-8 border-b border-gray-200">
                 <h3 class="text-xl font-bold text-drexel-blue mb-4 flex items-center gap-2">
                     <div class="w-1 h-6 bg-drexel-gold rounded"></div>
-                    Housing Preferences
+                    Housing & Dealbreakers
                 </h3>
                 <div class="space-y-4">
                     <div class="flex justify-between items-center p-4 bg-gray-50 rounded-lg flex-wrap gap-2">
-                        <span class="text-gray-600 font-medium">Preferred Location:</span>
-                        <span class="text-drexel-blue font-semibold" id="location">University City</span>
-                    </div>
-                    <div class="flex justify-between items-center p-4 bg-gray-50 rounded-lg flex-wrap gap-2">
                         <span class="text-gray-600 font-medium">Budget Range:</span>
-                        <span class="text-drexel-blue font-semibold" id="budget">$600 - $800/month</span>
+                        <span class="text-drexel-blue font-semibold" id="budget">—</span>
                     </div>
                     <div class="flex justify-between items-center p-4 bg-gray-50 rounded-lg flex-wrap gap-2">
                         <span class="text-gray-600 font-medium">Move-in Date:</span>
-                        <span class="text-drexel-blue font-semibold" id="moveInDate">September 2024</span>
+                        <span class="text-drexel-blue font-semibold" id="moveInDate">—</span>
                     </div>
                     <div class="flex justify-between items-center p-4 bg-gray-50 rounded-lg flex-wrap gap-2">
-                        <span class="text-gray-600 font-medium">Lease Duration:</span>
-                        <span class="text-drexel-blue font-semibold" id="leaseDuration">12 months</span>
+                        <span class="text-gray-600 font-medium">Lease Length:</span>
+                        <span class="text-drexel-blue font-semibold" id="leaseDuration">—</span>
                     </div>
+                    <div class="flex justify-between items-center p-4 bg-gray-50 rounded-lg flex-wrap gap-2">
+                        <span class="text-gray-600 font-medium">Coop Cycle:</span>
+                        <span class="text-drexel-blue font-semibold" id="coopCycle">—</span>
+                    </div>
+                    <div class="flex justify-between items-center p-4 bg-gray-50 rounded-lg flex-wrap gap-2">
+                        <span class="text-gray-600 font-medium">Room Type:</span>
+                        <span class="text-drexel-blue font-semibold" id="roomType">—</span>
+                    </div>
+                    <div class="flex justify-between items-center p-4 bg-gray-50 rounded-lg flex-wrap gap-2">
+                        <span class="text-gray-600 font-medium">Smoking:</span>
+                        <span class="text-drexel-blue font-semibold" id="smoking">—</span>
+                    </div>
+                    <div class="flex justify-between items-center p-4 bg-gray-50 rounded-lg flex-wrap gap-2">
+                        <span class="text-gray-600 font-medium">Pets:</span>
+                        <span class="text-drexel-blue font-semibold" id="pets">—</span>
+                    </div>
+                    <p class="text-xs text-gray-500 pt-2">Edit in <a href="/interests" class="text-drexel-blue font-medium hover:underline">Roommate Preferences</a></p>
                 </div>
             </div>
 
@@ -182,31 +234,111 @@
     </div>
 
     <script>
-        // Check auth on page load
+        const HOBBY_EMOJI = { gaming: '🎮', reading: '📚', fitness: '🏋️', movies: '🎬', cooking: '🍳', music: '🎵', travel: '✈️', art: '🎨', sports: '⚽', outdoors: '🌲', photography: '📷', coding: '💻' };
+
+        const SCORE_LABELS = {
+            sleepSchedule: ['', 'Early bird', 'Slightly early', 'Moderate', 'Slightly late', 'Night owl'],
+            noiseTolerance: ['', 'Very quiet', 'Quiet', 'Moderate', 'Some noise OK', 'Loud / Social'],
+            cleanliness: ['', 'Relaxed', 'Casual', 'Moderate', 'Clean', 'Very clean'],
+            guestsFrequency: ['', 'Rarely', 'Sometimes', 'Moderate', 'Often', 'Very often'],
+            cookingHabits: ['', 'Rarely cook', 'Sometimes', 'Moderate', 'Often', 'Every day'],
+            timeAtHome: ['', 'Always out', 'Often out', 'Moderate', 'Often home', 'Always home'],
+            temperaturePref: ['', 'Very cold', 'Cool', 'Moderate', 'Warm', 'Very warm'],
+            gymInterest: ['', 'None', 'Low', 'Moderate', 'Active', 'Very active'],
+            mediaInterest: ['', 'None', 'Low', 'Moderate', 'High', 'Very high']
+        };
+
+        function getPrefs() {
+            try {
+                return JSON.parse(localStorage.getItem('roommatePrefs') || '{}');
+            } catch { return {}; }
+        }
+
+        function setText(id, text) {
+            const el = document.getElementById(id);
+            if (el) el.textContent = text || '—';
+        }
+
+        function formatDate(val) {
+            if (!val) return '';
+            const d = new Date(val);
+            return isNaN(d.getTime()) ? val : d.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+        }
+
+        function formatLabel(val, opts) {
+            if (!val) return '';
+            const arr = Array.isArray(opts) ? opts : Object.values(opts);
+            return arr[parseInt(val, 10)] || val;
+        }
+
+        function loadProfileFromPrefs() {
+            const prefs = getPrefs();
+
+            // Header: major, year
+            const p = prefs.personal || {};
+            setText('profileMajor', p.major || '');
+            setText('profileYear', p.year ? p.year.charAt(0).toUpperCase() + p.year.slice(1) : '');
+
+            // Lifestyle scores
+            const scores = prefs.scores || {};
+            setText('sleepSchedule', SCORE_LABELS.sleepSchedule[scores.sleepSchedule]);
+            setText('noiseLevel', SCORE_LABELS.noiseTolerance[scores.noiseTolerance]);
+            setText('cleanliness', SCORE_LABELS.cleanliness[scores.cleanliness]);
+            setText('guests', SCORE_LABELS.guestsFrequency[scores.guestsFrequency]);
+            setText('cookingHabits', SCORE_LABELS.cookingHabits[scores.cookingHabits]);
+            setText('timeAtHome', SCORE_LABELS.timeAtHome[scores.timeAtHome]);
+            setText('temperaturePref', SCORE_LABELS.temperaturePref[scores.temperaturePref]);
+            setText('personality', p.personality ? p.personality.charAt(0).toUpperCase() + p.personality.slice(1) : '');
+            setText('gymInterest', SCORE_LABELS.gymInterest[scores.gymInterest]);
+            setText('mediaInterest', SCORE_LABELS.mediaInterest[scores.mediaInterest]);
+
+            // Interests & Hobbies
+            const hobbies = p.hobbies || [];
+            const container = document.getElementById('interestsContainer');
+            const emptyHint = document.getElementById('interestsEmpty');
+            if (container) {
+                if (hobbies.length > 0) {
+                    if (emptyHint) emptyHint.remove();
+                    container.innerHTML = hobbies.map(h => {
+                        const label = h.charAt(0).toUpperCase() + h.slice(1);
+                        const emoji = HOBBY_EMOJI[h] || '•';
+                        return `<span class="px-5 py-2.5 bg-gradient-to-br from-drexel-blue to-drexel-light-blue text-white rounded-full font-medium">${emoji} ${label}</span>`;
+                    }).join('');
+                } else if (emptyHint) {
+                    emptyHint.classList.remove('hidden');
+                }
+            }
+
+            // Housing & Dealbreakers
+            const db = prefs.dealbreakers || {};
+            const budgetMin = db.budgetMin, budgetMax = db.budgetMax;
+            setText('budget', (budgetMin || budgetMax) ? `$${budgetMin || '?'} - $${budgetMax || '?'}/month` : '');
+            setText('moveInDate', formatDate(db.moveInDate));
+            setText('leaseDuration', db.leaseLength ? `${db.leaseLength} months` : '');
+            setText('coopCycle', db.coopCycle ? db.coopCycle.replace('-', '–') : '');
+            setText('roomType', db.roomType ? db.roomType.charAt(0).toUpperCase() + db.roomType.slice(1) : '');
+            setText('smoking', db.smoking ? (db.smoking === 'outside' ? 'Outside only' : db.smoking.charAt(0).toUpperCase() + db.smoking.slice(1)) : '');
+            setText('pets', db.pets ? (db.pets === 'have' ? 'Have pets' : db.pets === 'okay' ? 'Okay with pets' : db.pets === 'not-okay' ? 'Not okay with pets' : db.pets) : '');
+        }
+
         window.addEventListener('load', async () => {
             await window.Clerk.load();
             if (!window.Clerk.user) {
                 window.location.href = '/auth/login';
+                return;
             }
+            loadProfileFromPrefs();
         });
 
-        function goBack() {
-            window.history.back();
-        }
+        function goBack() { window.history.back(); }
 
         function signOut() {
-            window.Clerk.signOut().then(() => {
-                window.location.href = '/';
-            });
+            window.Clerk.signOut().then(() => { window.location.href = '/'; });
         }
 
-        function sendMessage() {
-            alert('Message feature coming soon!');
-        }
+        function sendMessage() { alert('Message feature coming soon!'); }
 
-        function saveProfile() {
-            alert('Profile saved!');
-        }
+        function saveProfile() { alert('Profile saved!'); }
     </script>
 </body>
 </html>

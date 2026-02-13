@@ -15,6 +15,12 @@ app.use(cors(), express.json());
 // Serve static files from root directory
 app.use(express.static(path.join(__dirname, '..')));
 
+// Redirect common URLs to correct paths
+app.get('/login', (_, res) => res.redirect(301, '/auth/login'));
+app.get('/login.html', (_, res) => res.redirect(301, '/auth/login'));
+app.get('/register', (_, res) => res.redirect(301, '/auth/register'));
+app.get('/register.html', (_, res) => res.redirect(301, '/auth/register'));
+
 const sign = (id) => jwt.sign({ userId: id }, process.env.JWT_SECRET, { expiresIn: '7d' });
 
 // Auth middleware
