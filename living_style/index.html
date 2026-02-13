@@ -5,6 +5,11 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+<script>
+  if (!localStorage.getItem('token')) {
+    window.location.href = '/auth/login';
+  }
+</script>
 
 <h1>Living Style & Preferences</h1>
 

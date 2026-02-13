@@ -52,4 +52,17 @@ app.get('/me', async (req, res) => {
   res.json(rows[0]);
 });
 
+app.get('/profile', async (req, res) => {
+  const { rows } = await pool.query('SELECT id, email FROM users WHERE id = $1', [req.userId]);
+  res.json(rows[0]);
+});
+
+app.get('/living_style', async (req, res) => {
+  res.json({ userId: req.userId });
+});
+
+app.get('/interests', async (req, res) => {
+  res.json({ userId: req.userId });
+});
+
 app.listen(process.env.PORT, () => console.log(`Server on port ${process.env.PORT}`));

@@ -5,6 +5,11 @@
   <title>Interests List</title>
 </head>
 <body>
+  <script>
+    if (!localStorage.getItem('token')) {
+      window.location.href = '/auth/login';
+    }
+  </script>
 
   <h1>Enter Your Interests</h1>
 
