@@ -1,9 +1,21 @@
 <!DOCTYPE html>
 <html>
+<head>
+  <script
+    async
+    crossorigin="anonymous"
+    data-clerk-publishable-key="pk_test_a2V5LXRpY2stNzQuY2xlcmsuYWNjb3VudHMuZGV2JA"
+    src="https://key-tick-74.clerk.accounts.dev/npm/@clerk/clerk-js@latest/dist/clerk.browser.js"
+    type="text/javascript"
+  ></script>
+</head>
 <body>
 
 <h1>Dragonmates First Heading</h1>
 <p>My first paragraph.</p>
+
+<h2>Session Info</h2>
+<div id="session-info">Loading...</div>
 
 <h2>Test Navigation</h2>
 <div style="display: flex; gap: 10px; flex-wrap: wrap;">
@@ -13,6 +25,27 @@
   <a href="/interests"><button>Interests</button></a>
   <a href="/living_style"><button>Living Style</button></a>
 </div>
+
+<script>
+  window.addEventListener('load', async () => {
+    await window.Clerk.load();
+    const user = window.Clerk.user;
+    const session = window.Clerk.session;
+    const infoDiv = document.getElementById('session-info');
+
+    if (user) {
+      infoDiv.innerHTML = `
+        <p><strong>Logged in as:</strong> ${user.primaryEmailAddress?.emailAddress || 'N/A'}</p>
+        <p><strong>User ID:</strong> ${user.id}</p>
+        <p><strong>Session ID:</strong> ${session?.id || 'N/A'}</p>
+        <p><strong>Created:</strong> ${user.createdAt}</p>
+        <button onclick="window.Clerk.signOut().then(() => location.reload())">Sign Out</button>
+      `;
+    } else {
+      infoDiv.innerHTML = '<p>Not logged in</p>';
+    }
+  });
+</script>
 
 </body>
 </html>

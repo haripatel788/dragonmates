@@ -2,11 +2,15 @@ const express = require('express');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const cors = require('cors');
+const path = require('path');
 const pool = require('./db');
 require('dotenv').config();
 
 const app = express();
 app.use(cors(), express.json());
+
+// Serve static files from root directory
+app.use(express.static(path.join(__dirname, '..')));
 
 const sign = (id) => jwt.sign({ userId: id }, process.env.JWT_SECRET, { expiresIn: '7d' });
 
@@ -46,23 +50,10 @@ app.post('/auth/login', async (req, res) => {
 // All routes below this line require authentication
 app.use(authenticate);
 
-// Protected routes
-app.get('/me', async (req, res) => {
+// Protected API routes
+app.get('/api/me', async (req, res) => {
   const { rows } = await pool.query('SELECT id, email FROM users WHERE id = $1', [req.userId]);
   res.json(rows[0]);
-});
-
-app.get('/profile', async (req, res) => {
-  const { rows } = await pool.query('SELECT id, email FROM users WHERE id = $1', [req.userId]);
-  res.json(rows[0]);
-});
-
-app.get('/living_style', async (req, res) => {
-  res.json({ userId: req.userId });
-});
-
-app.get('/interests', async (req, res) => {
-  res.json({ userId: req.userId });
 });
 
 app.listen(process.env.PORT, () => console.log(`Server on port ${process.env.PORT}`));

@@ -180,8 +180,9 @@
             headerSubtitle: 'hidden',
           }
         },
-        // Redirect after successful sign-up
-        afterSignUpUrl: '/dashboard.html',
+        signInUrl: '/auth/login',
+        fallbackRedirectUrl: '/profile',
+        forceRedirectUrl: '/profile',
       });
     });
   </script>

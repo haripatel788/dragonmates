@@ -5,6 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>User Profile - Drexel Roommate Finder</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script
+        async
+        crossorigin="anonymous"
+        data-clerk-publishable-key="pk_test_a2V5LXRpY2stNzQuY2xlcmsuYWNjb3VudHMuZGV2JA"
+        src="https://key-tick-74.clerk.accounts.dev/npm/@clerk/clerk-js@latest/dist/clerk.browser.js"
+        type="text/javascript"
+    ></script>
     <script>
         tailwind.config = {
             theme: {
@@ -22,11 +29,6 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body class="bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen p-5">
-    <script>
-        if (!localStorage.getItem('token')) {
-            window.location.href = '/auth/login';
-        }
-    </script>
     <div class="max-w-4xl mx-auto">
         <header class="flex items-center gap-4 mb-6 p-4 bg-white rounded-xl shadow-sm">
             <button class="flex items-center gap-2 text-drexel-blue font-medium px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors" onclick="goBack()">
@@ -179,6 +181,32 @@
         </div>
     </div>
 
-    <script src="script.js"></script>
+    <script>
+        // Check auth on page load
+        window.addEventListener('load', async () => {
+            await window.Clerk.load();
+            if (!window.Clerk.user) {
+                window.location.href = '/auth/login';
+            }
+        });
+
+        function goBack() {
+            window.history.back();
+        }
+
+        function signOut() {
+            window.Clerk.signOut().then(() => {
+                window.location.href = '/';
+            });
+        }
+
+        function sendMessage() {
+            alert('Message feature coming soon!');
+        }
+
+        function saveProfile() {
+            alert('Profile saved!');
+        }
+    </script>
 </body>
 </html>

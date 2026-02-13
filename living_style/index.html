@@ -3,12 +3,22 @@
 <head>
     <title>Living Style & Preferences</title>
     <link rel="stylesheet" href="style.css">
+    <script
+      async
+      crossorigin="anonymous"
+      data-clerk-publishable-key="pk_test_a2V5LXRpY2stNzQuY2xlcmsuYWNjb3VudHMuZGV2JA"
+      src="https://key-tick-74.clerk.accounts.dev/npm/@clerk/clerk-js@latest/dist/clerk.browser.js"
+      type="text/javascript"
+    ></script>
 </head>
 <body>
 <script>
-  if (!localStorage.getItem('token')) {
-    window.location.href = '/auth/login';
-  }
+  window.addEventListener('load', async () => {
+    await window.Clerk.load();
+    if (!window.Clerk.user) {
+      window.location.href = '/auth/login';
+    }
+  });
 </script>
 
 <h1>Living Style & Preferences</h1>
