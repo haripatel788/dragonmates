@@ -3,8 +3,11 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const cors = require('cors');
 const path = require('path');
+// Load .env only if not using Doppler (Doppler injects env vars directly)
+if (!process.env.DOPPLER_PROJECT) {
+  require('dotenv').config();
+}
 const pool = require('./db');
-require('dotenv').config();
 
 const app = express();
 app.use(cors(), express.json());

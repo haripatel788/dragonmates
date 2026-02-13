@@ -1,1 +1,190 @@
-Login page
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login - Drexel Roommate Finder</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            'drexel-blue': '#07294D',
+            'drexel-gold': '#FFC600',
+            'drexel-light-blue': '#1E4D7B',
+            'drexel-dark-blue': '#041E42',
+          }
+        }
+      }
+    }
+  </script>
+  <!-- Clerk key-tick-74 -->
+  <script
+    async
+    crossorigin="anonymous"
+    data-clerk-publishable-key="pk_test_a2V5LXRpY2stNzQuY2xlcmsuYWNjb3VudHMuZGV2JA"
+    src="https://key-tick-74.clerk.accounts.dev/npm/@clerk/clerk-js@latest/dist/clerk.browser.js"
+    type="text/javascript"
+  ></script>
+  <style>
+    /* Force Clerk's modal to match our theme */
+    :root {
+      --clerk-font-family: inherit;
+    }
+
+    /* Subtle fade-in for the page */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(16px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .fade-up { animation: fadeUp 0.45s ease both; }
+    .fade-up-delay { animation: fadeUp 0.45s ease 0.1s both; }
+    .fade-up-delay-2 { animation: fadeUp 0.45s ease 0.2s both; }
+
+    /* Clerk component container overrides */
+    #clerk-sign-in {
+      display: flex;
+      justify-content: center;
+      width: 100%;
+    }
+    #clerk-sign-in .cl-rootBox,
+    #clerk-sign-in .cl-cardBox,
+    #clerk-sign-in .cl-signIn {
+      width: 100% !important;
+      max-width: 100% !important;
+    }
+    #clerk-sign-in .cl-card {
+      box-shadow: none !important;
+      border: none !important;
+      background: transparent !important;
+      padding: 0 !important;
+      width: 100% !important;
+      max-width: 100% !important;
+      margin: 0 !important;
+    }
+    #clerk-sign-in .cl-headerTitle,
+    #clerk-sign-in .cl-headerSubtitle {
+      display: none !important;
+    }
+  </style>
+</head>
+<body class="bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen flex flex-col">
+
+  <!-- Header -->
+  <header class="fade-up bg-white shadow-sm px-6 py-4 flex items-center gap-4">
+    <a href="/" class="flex items-center gap-2 text-drexel-blue font-medium px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors">
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+        <path d="M12.5 15L7.5 10L12.5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      Back
+    </a>
+    <span class="text-2xl font-bold text-drexel-blue flex-1">Drexel Roommate Finder</span>
+  </header>
+
+  <!-- Main -->
+  <main class="flex-1 flex items-center justify-center p-6">
+    <div class="w-full max-w-lg">
+
+      <!-- Card -->
+      <div class="bg-white rounded-2xl shadow-lg overflow-visible fade-up-delay">
+
+        <!-- Card header — matches profile page hero style -->
+        <div class="bg-gradient-to-br from-drexel-blue to-drexel-light-blue px-8 pt-8 pb-6 rounded-t-2xl">
+          <div class="flex items-center gap-3 mb-1">
+            <span class="px-3 py-1 bg-drexel-gold text-drexel-blue text-xs font-bold rounded-full tracking-wide uppercase">Welcome Back</span>
+          </div>
+          <h1 class="text-3xl font-bold text-white mt-2 mb-1">Sign in to your account</h1>
+          <p class="text-white/75 text-sm">Continue to Drexel's roommate matching platform</p>
+        </div>
+
+        <!-- Gold accent bar — matches section headers -->
+        <div class="h-1 bg-drexel-gold w-full"></div>
+
+        <!-- Clerk SignIn widget -->
+        <div class="px-4 py-7 fade-up-delay-2 overflow-visible">
+          <div id="clerk-sign-in" class="w-full"></div>
+
+          <!-- Loading state shown before Clerk mounts -->
+          <div id="clerk-loading" class="flex flex-col items-center justify-center py-10 gap-3 text-gray-400">
+            <svg class="animate-spin w-8 h-8 text-drexel-blue" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"/>
+            </svg>
+            <span class="text-sm">Loading...</span>
+          </div>
+        </div>
+
+        <!-- Footer link -->
+        <div class="px-8 pb-7 text-center text-sm text-gray-500">
+          Don't have an account?
+          <a href="/auth/register" class="text-drexel-blue font-semibold hover:underline ml-1">Sign up</a>
+        </div>
+
+      </div>
+
+      <!-- Trust badges — matches "Verified Student" tag style -->
+      <div class="mt-4 flex items-center justify-center gap-4 text-xs text-gray-500 fade-up-delay-2">
+        <span class="flex items-center gap-1">
+          <svg width="14" height="14" fill="none" viewBox="0 0 20 20">
+            <path d="M10 2L12.4 7.3H18L13.3 10.6L15.1 16L10 12.7L4.9 16L6.7 10.6L2 7.3H7.6L10 2Z" stroke="#07294D" stroke-width="1.5" stroke-linejoin="round"/>
+          </svg>
+          Drexel Students Only
+        </span>
+        <span class="text-gray-300">•</span>
+        <span class="flex items-center gap-1">
+          <svg width="14" height="14" fill="none" viewBox="0 0 20 20">
+            <rect x="4" y="9" width="12" height="9" rx="1.5" stroke="#07294D" stroke-width="1.5"/>
+            <path d="M7 9V6a3 3 0 016 0v3" stroke="#07294D" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
+          Secure &amp; Private
+        </span>
+        <span class="text-gray-300">•</span>
+        <span class="flex items-center gap-1">
+          <svg width="14" height="14" fill="none" viewBox="0 0 20 20">
+            <path d="M10 18s-7-4.5-7-10a7 7 0 0114 0c0 5.5-7 10-7 10z" stroke="#07294D" stroke-width="1.5"/>
+            <circle cx="10" cy="8" r="2" stroke="#07294D" stroke-width="1.5"/>
+          </svg>
+          Verified Profiles
+        </span>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    window.addEventListener('load', async () => {
+      await window.Clerk.load();
+
+      // Hide spinner, mount SignIn
+      document.getElementById('clerk-loading').style.display = 'none';
+
+      window.Clerk.mountSignIn(document.getElementById('clerk-sign-in'), {
+        appearance: {
+          variables: {
+            colorPrimary: '#07294D',
+            colorTextOnPrimaryBackground: '#ffffff',
+            colorBackground: '#ffffff',
+            colorInputBackground: '#f9fafb',
+            colorInputText: '#07294D',
+            borderRadius: '0.75rem',
+            fontFamily: 'inherit',
+          },
+          elements: {
+            formButtonPrimary:
+              'bg-gradient-to-br from-drexel-blue to-drexel-light-blue hover:-translate-y-0.5 shadow-md transition-all',
+            socialButtonsBlockButton:
+              'border-2 border-gray-200 hover:border-drexel-blue hover:text-drexel-blue transition-colors',
+            card: 'shadow-none',
+            footer: 'hidden',        // We have our own footer link
+            headerTitle: 'hidden',   // We have our own heading
+            headerSubtitle: 'hidden',
+          }
+        },
+        signUpUrl: '/auth/register',
+        fallbackRedirectUrl: '/profile',
+        forceRedirectUrl: '/profile',
+      });
+    });
+  </script>
+</body>
+</html>
