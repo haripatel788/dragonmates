@@ -10,6 +10,18 @@ app.use(cors(), express.json());
 
 const sign = (id) => jwt.sign({ userId: id }, process.env.JWT_SECRET, { expiresIn: '7d' });
 
+// Auth middleware
+const authenticate = (req, res, next) => {
+  const token = req.headers.authorization?.split(' ')[1];
+  try {
+    req.userId = jwt.verify(token, process.env.JWT_SECRET).userId;
+    next();
+  } catch {
+    res.status(401).json({ error: 'Unauthorized' });
+  }
+};
+
+// Public routes (no authentication required)
 // Register
 app.post('/auth/register', async (req, res) => {
   const { email, password } = req.body;
@@ -31,19 +43,11 @@ app.post('/auth/login', async (req, res) => {
   res.json({ token: sign(user.id), user: { id: user.id, email: user.email } });
 });
 
-// Auth middleware
-const authenticate = (req, res, next) => {
-  const token = req.headers.authorization?.split(' ')[1];
-  try {
-    req.userId = jwt.verify(token, process.env.JWT_SECRET).userId;
-    next();
-  } catch {
-    res.status(401).json({ error: 'Unauthorized' });
-  }
-};
+// All routes below this line require authentication
+app.use(authenticate);
 
-// Protected route
-app.get('/me', authenticate, async (req, res) => {
+// Protected routes
+app.get('/me', async (req, res) => {
   const { rows } = await pool.query('SELECT id, email FROM users WHERE id = $1', [req.userId]);
   res.json(rows[0]);
 });
