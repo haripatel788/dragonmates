@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Edit Profile - Drexel Roommate Finder</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div class="container">
+        <h1>Edit Your Profile</h1>
+
+        <div class="form-section">
+            <label>Name:</label>
+            <input type="text" id="nameInput" placeholder="Enter your name">
+
+            <label>Major:</label>
+            <input type="text" id="majorInput" placeholder="Enter your major">
+
+            <label>Year:</label>
+            <select id="yearInput">
+                <option value="">Select year</option>
+                <option>Freshman</option>
+                <option>Sophomore</option>
+                <option>Junior</option>
+                <option>Senior</option>
+            </select>
+
+            <label>Birthday:</label>
+            <input type="date" id="birthdayInput">
+
+            <label>Age:</label>
+            <input type="number" id="ageInput" placeholder="Enter your age">
+
+            <label>About You:</label>
+            <textarea id="bioInput" placeholder="Tell future roommates about yourself..."></textarea>
+
+            <button onclick="saveProfile()">Save Profile</button>
+
+            <p id="confirmationMessage"></p>
+        </div>
+
+        <hr>
+
+        <div class="profile-display">
+            <h2>Your Profile</h2>
+            <p><strong>Name:</strong> <span id="displayName">-</span></p>
+            <p><strong>Major:</strong> <span id="displayMajor">-</span></p>
+            <p><strong>Year:</strong> <span id="displayYear">-</span></p>
+            <p><strong>Birthday:</strong> <span id="displayBirthday">-</span></p>
+            <p><strong>Age:</strong> <span id="displayAge">-</span></p>
+            <p><strong>About:</strong> <span id="displayBio">-</span></p>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
