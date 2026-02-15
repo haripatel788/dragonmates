@@ -1,84 +1,114 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
     <title>Living Style & Preferences</title>
     <link rel="stylesheet" href="style.css">
-    <script
-      async
-      crossorigin="anonymous"
-      data-clerk-publishable-key="pk_test_a2V5LXRpY2stNzQuY2xlcmsuYWNjb3VudHMuZGV2JA"
-      src="https://key-tick-74.clerk.accounts.dev/npm/@clerk/clerk-js@5/dist/clerk.browser.js"
-      type="text/javascript"
-    ></script>
 </head>
 <body>
-<script>
-  window.addEventListener('load', async () => {
-    await window.Clerk.load();
-    if (!window.Clerk.user) {
-      window.location.href = '/auth/login';
-    }
-  });
-</script>
 
-<h1>Living Style & Preferences</h1>
+    <form>
 
-<form id="prefsForm">
+        <h1>Living Style & Preferences</h1>
 
-    <label>Sleep Schedule:</label>
-    <select id="sleepSchedule">
-        <option value="">Select...</option>
-        <option value="early">Early Sleeper</option>
-        <option value="middle">Normal</option>
-        <option value="late">Night Owl</option>
-    </select>
+        <!-- Sleep Schedule -->
+        <div>
+            <label>Sleep Schedule</label>
+            <select>
+                <option>Select...</option>
+                <option>Early Bird</option>
+                <option>Night Owl</option>
+            </select>
+        </div>
 
-    <label>Cleanliness:</label>
-    <select id="cleanliness">
-        <option value="">Select...</option>
-        <option value="low">Relaxed</option>
-        <option value="medium">Moderate</option>
-        <option value="high">Very Clean</option>
-    </select>
+        <!-- Cleanliness -->
+        <div>
+            <label>Cleanliness</label>
+            <select>
+                <option>Select...</option>
+                <option>Very Clean</option>
+                <option>Moderate</option>
+                <option>Relaxed</option>
+            </select>
+        </div>
 
-    <label>Noise Preference:</label>
-    <select id="noise">
-        <option value="">Select...</option>
-        <option value="quiet">Quiet</option>
-        <option value="moderate">Moderate</option>
-        <option value="loud">Loud / Social</option>
-    </select>
+        <!-- Noise -->
+        <div>
+            <label>Noise Preference</label>
+            <select>
+                <option>Select...</option>
+                <option>Quiet</option>
+                <option>Moderate</option>
+                <option>Loud</option>
+            </select>
+        </div>
 
-    <label>Guests:</label>
-    <select id="guests">
-        <option value="">Select...</option>
-        <option value="rare">Rarely</option>
-        <option value="sometimes">Sometimes</option>
-        <option value="often">Often</option>
-    </select>
+        <!-- Guests -->
+        <div>
+            <label>Guests</label>
+            <select>
+                <option>Select...</option>
+                <option>Rarely</option>
+                <option>Occasionally</option>
+                <option>Frequently</option>
+            </select>
+        </div>
 
-    <label>Pets:</label>
-    <select id="pets">
-        <option value="">Select...</option>
-        <option value="no">No pets</option>
-        <option value="maybe">Maybe</option>
-        <option value="yes">I have / want pets</option>
-    </select>
+        <!-- Social Lifestyle -->
+        <div>
+            <label>Social Lifestyle</label>
+            <select>
+                <option>Select...</option>
+                <option>Stay in mostly</option>
+                <option>Go out occasionally</option>
+                <option>Go out frequently</option>
+            </select>
+        </div>
 
-    <label>Interests (comma separated):</label>
-    <input type="text" id="interests" placeholder="gaming, gym, cooking">
+        <!-- Roommate Interaction Style -->
+        <div>
+            <label>Roommate Interaction Style</label>
+            <select>
+                <option>Select...</option>
+                <option>Very social</option>
+                <option>Balanced</option>
+                <option>Mostly independent</option>
+            </select>
+        </div>
 
-    <button type="button" onclick="savePreferences()">Save Preferences</button>
-    <button type="button" onclick="loadPreferences()">Load Saved</button>
+        <!-- Shared Responsibilities -->
+        <div>
+            <label>Shared Responsibilities</label>
+            <select>
+                <option>Select...</option>
+                <option>Strict cleaning schedule</option>
+                <option>Rotate chores weekly</option>
+                <option>Clean when needed</option>
+            </select>
+        </div>
 
-</form>
+        <!-- Cooking Frequency -->
+        <div>
+            <label>Cooking Frequency</label>
+            <select>
+                <option>Select...</option>
+                <option>Cook daily</option>
+                <option>Cook a few times a week</option>
+                <option>Rarely cook</option>
+            </select>
+        </div>
 
-<h2>Your Saved Profile</h2>
-<div id="profileDisplay">No profile saved yet.</div>
+        <!-- Interests -->
+        <div>
+            <label>Interests (comma separated)</label>
+            <input type="text" placeholder="gaming, gym, cooking">
+        </div>
 
-<h2>Matching Result (Stub)</h2>
-<div id="matchResult">Matching not calculated yet.</div>
+        <!-- Buttons -->
+        <button type="button">Save Preferences</button>
+        <button type="button">Load Saved</button>
 
-<script src="script.js"></script>
+    </form>
+
 </body>
 </html>
