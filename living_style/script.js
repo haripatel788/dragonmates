@@ -19,8 +19,6 @@ function loadPreferences() {
         document.getElementById("profileDisplay").innerHTML = "No saved preferences.";
         return;
     }
-
-    // fill form
     document.getElementById("sleepSchedule").value = saved.sleepSchedule;
     document.getElementById("cleanliness").value = saved.cleanliness;
     document.getElementById("noise").value = saved.noise;
@@ -28,7 +26,6 @@ function loadPreferences() {
     document.getElementById("pets").value = saved.pets;
     document.getElementById("interests").value = saved.interests.join(", ");
 
-    // show saved profile
     document.getElementById("profileDisplay").innerHTML = `
         <strong>Sleep:</strong> ${saved.sleepSchedule} <br>
         <strong>Cleanliness:</strong> ${saved.cleanliness} <br>
@@ -38,8 +35,7 @@ function loadPreferences() {
         <strong>Interests:</strong> ${saved.interests.join(", ")}
     `;
 
-    // basic matching stub
-    const score = Math.floor(Math.random() * 40) + 60; // random 60–100%
+    const score = Math.floor(Math.random() * 40) + 60;
     document.getElementById("matchResult").innerHTML = 
         `Match Score: <strong>${score}%</strong> (stub example)`;
 }
