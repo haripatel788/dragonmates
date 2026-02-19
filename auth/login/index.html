@@ -141,7 +141,6 @@
             <div id="clerk-sign-in" class="w-full"></div>
           </div>
         
-          <div id="clerk-sign-in" class="w-full"></div>
 
           <!-- Loading state shown before Clerk mounts -->
           <div id="clerk-loading" class="flex flex-col items-center justify-center py-10 gap-3 text-gray-400">
@@ -208,6 +207,7 @@
           new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), 15000))
         ]);
       } catch (e) {
+        console.error('Clerk.load error', e);
         showError(e.message === 'timeout' ? 'Clerk is taking too long. Refresh the page or check your connection.' : 'Failed to load sign-in. Please refresh.');
         return;
       }
