@@ -72,45 +72,22 @@ app.post('/api/clerk-user', async (req, res) => {
   }
 });
 
-// Save roommate preferences (living styles + interests + housing prefs)
+// Save lifestyle scores to living_styles table
 app.post('/api/preferences', async (req, res) => {
-  const { clerkId, scores, dealbreakers, personal } = req.body;
-  if (!clerkId) return res.status(400).json({ error: 'clerkId is required' });
+  const { clerkId, scores } = req.body;
+  if (!clerkId || !scores) return res.status(400).json({ error: 'clerkId and scores are required' });
 
   try {
-    // Get user id from clerk_id
     const { rows: users } = await pool.query('SELECT id FROM users WHERE clerk_id = $1', [clerkId]);
     if (!users[0]) return res.status(404).json({ error: 'User not found' });
     const userId = users[0].id;
 
-    // Save living_styles (delete old, insert new)
-    if (scores) {
-      await pool.query('DELETE FROM living_styles WHERE user_id = $1', [userId]);
-      await pool.query(
-        `INSERT INTO living_styles (user_id, clerk_id, sleep_schedule, cleanliness, noise_level, guests, pets)
-         VALUES ($1, $2, $3, $4, $5, $6, $7)`,
-        [userId, clerkId, scores.sleepSchedule, scores.cleanliness, scores.noiseTolerance, scores.guestsFrequency, dealbreakers?.pets || '']
-      );
-    }
-
-    // Save interests (delete old, insert new)
-    await pool.query('DELETE FROM interests WHERE user_id = $1', [userId]);
-    if (personal?.hobbies?.length) {
-      for (const hobby of personal.hobbies) {
-        await pool.query('INSERT INTO interests (user_id, clerk_id, interest) VALUES ($1, $2, $3)', [userId, clerkId, hobby]);
-      }
-    }
-
-    // Save housing_preferences (delete old, insert new)
-    if (dealbreakers) {
-      await pool.query('DELETE FROM housing_preferences WHERE user_id = $1', [userId]);
-      await pool.query(
-        `INSERT INTO housing_preferences (user_id, clerk_id, budget_min, budget_max, move_in_date, lease_duration)
-         VALUES ($1, $2, $3, $4, $5, $6)`,
-        [userId, clerkId, dealbreakers.budgetMin || null, dealbreakers.budgetMax || null,
-         dealbreakers.moveInDate || null, dealbreakers.leaseLength || null]
-      );
-    }
+    await pool.query('DELETE FROM living_styles WHERE user_id = $1', [userId]);
+    await pool.query(
+      `INSERT INTO living_styles (user_id, clerk_id, sleep_schedule, cleanliness, noise_level, guests, pets)
+       VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+      [userId, clerkId, scores.sleepSchedule, scores.cleanliness, scores.noiseTolerance, scores.guestsFrequency, scores.pets || '']
+    );
 
     res.json({ success: true });
   } catch (err) {

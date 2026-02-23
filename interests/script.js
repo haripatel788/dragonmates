@@ -141,9 +141,7 @@ async function savePreferences() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 clerkId: user.id,
-                scores: prefs.scores,
-                dealbreakers: prefs.dealbreakers,
-                personal: prefs.personal
+                scores: prefs.scores
             })
         });
         if (!res.ok) throw new Error('Failed to save');
