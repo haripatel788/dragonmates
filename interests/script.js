@@ -124,14 +124,36 @@ function loadFormData() {
     });
 }
 
-function savePreferences() {
+async function savePreferences() {
     const prefs = collectFormData();
     savePrefs(prefs);
 
     const msg = document.getElementById('saveMessage');
-    if (msg) {
-        msg.classList.remove('hidden');
-        setTimeout(() => msg.classList.add('hidden'), 3000);
+    const user = window.Clerk?.user;
+    if (!user) {
+        alert('Please sign in first.');
+        return;
+    }
+
+    try {
+        const res = await fetch('/api/preferences', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                clerkId: user.id,
+                scores: prefs.scores,
+                dealbreakers: prefs.dealbreakers,
+                personal: prefs.personal
+            })
+        });
+        if (!res.ok) throw new Error('Failed to save');
+        if (msg) {
+            msg.classList.remove('hidden');
+            setTimeout(() => msg.classList.add('hidden'), 3000);
+        }
+    } catch (err) {
+        console.error('Error saving preferences:', err);
+        alert('Failed to save preferences. Please try again.');
     }
 }
 

@@ -33,7 +33,18 @@
             await window.Clerk.load();
             if (!window.Clerk.user) {
                 window.location.href = '/auth/login';
+                return;
             }
+            // Sync Clerk user to Neon DB (runs on first visit after sign-up)
+            const user = window.Clerk.user;
+            fetch('/api/clerk-user', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    clerkId: user.id,
+                    email: user.primaryEmailAddress?.emailAddress
+                })
+            }).catch(err => console.error('Failed to sync user to DB:', err));
         });
     </script>
 
