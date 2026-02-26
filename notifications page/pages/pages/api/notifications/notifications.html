@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Notifications</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/supabase.min.js"></script>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; background: #f8f8f8; }
+    .container { max-width: 600px; margin: auto; }
+    h1 { font-size: 24px; font-weight: bold; margin-bottom: 20px; }
+    ul { list-style: none; padding: 0; }
+    li { padding: 10px; margin-bottom: 10px; border-radius: 6px; border: 1px solid #ccc; display: flex; justify-content: space-between; align-items: center; }
+    .unread { background-color: #dbeafe; font-weight: bold; }
+    .read { background-color: #f1f1f1; }
+    button { background: none; border: none; color: #1d4ed8; cursor: pointer; text-decoration: underline; font-size: 14px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Notifications</h1>
+    <ul id="notificationsList">
+      <li>Loading notifications...</li>
+    </ul>
+  </div>
+
+  <script>
+    // Initialize Supabase with Doppler/environment variables
+    const SUPABASE_URL = "YOUR_SUPABASE_URL"; // Replace with Doppler/env variable
+    const SUPABASE_KEY = "YOUR_SUPABASE_KEY"; // Replace with Doppler/env variable
+    const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    const notificationsList = document.getElementById("notificationsList");
+
+    // Replace this with the signed-in user ID from your auth system
+    const userId = "SIGNED_IN_USER_ID";
+
+    async function loadNotifications() {
+      // Show loading state
+      notificationsList.innerHTML = "<li>Loading notifications...</li>";
+
+      const { data, error } = await supabase
+        .from("notifications") // your table
+        .select("*")
+        .eq("user_id", userId)
+        .order("created_at", { ascending: false });
+
+      if (error) {
+        notificationsList.innerHTML = "<li>Error loading notifications</li>";
+        console.error(error);
+        return;
+      }
+
+      if (!data || data.length === 0) {
+        notificationsList.innerHTML = "<li>No notifications yet</li>";
+        return;
+      }
+
+      // Clear loading
+      notificationsList.innerHTML = "";
+
+      data.forEach((notif) => {
+        const li = document.createElement("li");
+        li.className = notif.read ? "read" : "unread";
+
+        const message = document.createElement("span");
+        message.textContent = notif.message;
+
+        li.appendChild(message);
+
+        // Add "Mark as read" button for unread notifications
+        if (!notif.read) {
+          const button = document.createElement("button");
+          button.textContent = "Mark as read";
+          button.onclick = async () => {
+            const { error } = await supabase
+              .from("notifications")
+              .update({ read: true })
+              .eq("id", notif.id);
+            if (!error) {
+              li.className = "read"; // visually mark as read
+              button.remove();        // remove button
+            }
+          };
+          li.appendChild(button);
+        }
+
+        notificationsList.appendChild(li);
+      });
+    }
+
+    loadNotifications();
+  </script>
+</body>
+</html>
