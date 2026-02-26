@@ -96,6 +96,49 @@ app.post('/api/preferences', async (req, res) => {
   }
 });
 
+// Save user interests (hobbies, major, year, personality)
+app.post('/api/interests', async (req, res) => {
+  const { clerkId, hobbies, major, year, personality } = req.body;
+  if (!clerkId) return res.status(400).json({ error: 'clerkId is required' });
+
+  try {
+    const { rows: users } = await pool.query('SELECT id FROM users WHERE clerk_id = $1', [clerkId]);
+    if (!users[0]) return res.status(404).json({ error: 'User not found' });
+    const userId = users[0].id;
+
+    // Replace existing interests
+    await pool.query('DELETE FROM interests WHERE user_id = $1', [userId]);
+
+    // Insert each hobby as a separate interest row
+    if (hobbies && hobbies.length > 0) {
+      const values = hobbies.map((_, i) => `($1, $2, $${i + 3})`).join(', ');
+      await pool.query(
+        `INSERT INTO interests (user_id, clerk_id, interest) VALUES ${values}`,
+        [userId, clerkId, ...hobbies]
+      );
+    }
+
+    // Update or insert profile with major, year, personality
+    const { rows: existing } = await pool.query('SELECT id FROM profiles WHERE user_id = $1', [userId]);
+    if (existing[0]) {
+      await pool.query(
+        `UPDATE profiles SET major = $1, year = $2, updated_at = CURRENT_TIMESTAMP WHERE user_id = $3`,
+        [major || '', year || '', userId]
+      );
+    } else {
+      await pool.query(
+        `INSERT INTO profiles (user_id, clerk_id, major, year) VALUES ($1, $2, $3, $4)`,
+        [userId, clerkId, major || '', year || '']
+      );
+    }
+
+    res.json({ success: true });
+  } catch (err) {
+    console.error('Error saving interests:', err);
+    res.status(500).json({ error: 'Failed to save interests' });
+  }
+});
+
 // All routes below this line require authentication
 app.use(authenticate);
 

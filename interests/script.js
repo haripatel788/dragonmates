@@ -136,6 +136,7 @@ async function savePreferences() {
     }
 
     try {
+        // Save living style scores
         const res = await fetch('/api/preferences', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -144,7 +145,22 @@ async function savePreferences() {
                 scores: prefs.scores
             })
         });
-        if (!res.ok) throw new Error('Failed to save');
+        if (!res.ok) throw new Error('Failed to save preferences');
+
+        // Save interests (hobbies, major, year, personality)
+        const res2 = await fetch('/api/interests', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                clerkId: user.id,
+                hobbies: prefs.personal?.hobbies || [],
+                major: prefs.personal?.major || '',
+                year: prefs.personal?.year || '',
+                personality: prefs.personal?.personality || ''
+            })
+        });
+        if (!res2.ok) throw new Error('Failed to save interests');
+
         if (msg) {
             msg.classList.remove('hidden');
             setTimeout(() => msg.classList.add('hidden'), 3000);
