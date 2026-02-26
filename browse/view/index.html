@@ -175,7 +175,57 @@
         }
 
         function sendMessage() {
-            alert('Message feature coming soon!');
+            // Remove any existing chat UI
+            let chatUI = document.getElementById('chatUI');
+            if (chatUI) chatUI.remove();
+
+            // Hide profile content
+            document.getElementById('profileContent').style.display = 'none';
+
+            // Create full-screen chat UI
+            chatUI = document.createElement('div');
+            chatUI.id = 'chatUI';
+            chatUI.className = 'fixed inset-0 z-50 flex flex-col bg-gradient-to-br from-gray-50 to-gray-100';
+            chatUI.innerHTML = `
+                <div class="flex items-center gap-4 p-4 bg-white shadow-md border-b">
+                    <button id="closeChat" class="text-drexel-blue font-bold text-xl px-2 py-1 rounded hover:bg-gray-100">&larr;</button>
+                    <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=1" alt="Alex Chen" class="w-12 h-12 rounded-full border-2 border-drexel-gold">
+                    <div>
+                        <div class="font-bold text-drexel-blue text-lg">Alex Chen</div>
+                        <div class="text-xs text-gray-500">Online</div>
+                    </div>
+                </div>
+                <div id="chatMessages" class="flex-1 overflow-y-auto p-6 flex flex-col gap-4 bg-gradient-to-br from-drexel-blue/5 to-drexel-gold/10"></div>
+                <form id="chatForm" class="flex gap-2 p-4 bg-white border-t">
+                    <input id="chatInput" type="text" class="flex-1 px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-drexel-gold focus:border-drexel-light-blue outline-none transition" placeholder="Type a message..." autocomplete="off" required />
+                    <button type="submit" class="px-6 py-3 bg-drexel-gold text-drexel-blue font-semibold rounded-xl hover:bg-amber-400 transition-colors">Send</button>
+                </form>
+            `;
+            document.body.appendChild(chatUI);
+
+            // Chat message area
+            const chatMessages = document.getElementById('chatMessages');
+
+            // Send message logic (ready for backend integration)
+            document.getElementById('chatForm').onsubmit = async function(e) {
+                e.preventDefault();
+                const input = document.getElementById('chatInput');
+                const text = input.value.trim();
+                if (!text) return;
+                // TODO: Send message to backend here
+                const bubble = document.createElement('div');
+                bubble.className = 'max-w-[70%] px-4 py-2 rounded-2xl shadow text-base self-end bg-drexel-gold text-drexel-blue';
+                bubble.textContent = text;
+                chatMessages.appendChild(bubble);
+                input.value = '';
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            };
+
+            // Close chat
+            document.getElementById('closeChat').onclick = function() {
+                chatUI.remove();
+                document.getElementById('profileContent').style.display = '';
+            };
         }
 
         renderProfile();

@@ -56,6 +56,46 @@ app.post('/auth/login', async (req, res) => {
   res.json({ token: sign(user.id), user: { id: user.id, email: user.email } });
 });
 
+// Sync Clerk user to Neon DB after sign-up
+app.post('/api/clerk-user', async (req, res) => {
+  const { clerkId, email } = req.body;
+  if (!clerkId || !email) return res.status(400).json({ error: 'clerkId and email are required' });
+  try {
+    const { rows } = await pool.query(
+      'INSERT INTO users (clerk_id, email) VALUES ($1, $2) ON CONFLICT (clerk_id) DO UPDATE SET email = EXCLUDED.email RETURNING id, clerk_id, email',
+      [clerkId, email]
+    );
+    res.json({ user: rows[0] || { clerkId, email, existing: true } });
+  } catch (err) {
+    console.error('Error creating clerk user:', err);
+    res.status(500).json({ error: 'Failed to create user' });
+  }
+});
+
+// Save lifestyle scores to living_styles table
+app.post('/api/preferences', async (req, res) => {
+  const { clerkId, scores } = req.body;
+  if (!clerkId || !scores) return res.status(400).json({ error: 'clerkId and scores are required' });
+
+  try {
+    const { rows: users } = await pool.query('SELECT id FROM users WHERE clerk_id = $1', [clerkId]);
+    if (!users[0]) return res.status(404).json({ error: 'User not found' });
+    const userId = users[0].id;
+
+    await pool.query('DELETE FROM living_styles WHERE user_id = $1', [userId]);
+    await pool.query(
+      `INSERT INTO living_styles (user_id, clerk_id, sleep_schedule, cleanliness, noise_level, guests, pets)
+       VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+      [userId, clerkId, scores.sleepSchedule, scores.cleanliness, scores.noiseTolerance, scores.guestsFrequency, scores.pets || '']
+    );
+
+    res.json({ success: true });
+  } catch (err) {
+    console.error('Error saving preferences:', err);
+    res.status(500).json({ error: 'Failed to save preferences' });
+  }
+});
+
 // All routes below this line require authentication
 app.use(authenticate);
 
