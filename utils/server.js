@@ -40,7 +40,7 @@ app.post('/auth/register', async (req, res) => {
   const { email, password } = req.body;
   const hash = await bcrypt.hash(password, 12);
   const { rows } = await pool.query(
-    'INSERT INTO users (email, password_hash) VALUES ($1, $2) RETURNING id, email',
+    'INSERT INTO "User" (email, password_hash) VALUES ($1, $2) RETURNING id, email',
     [email, hash]
   ).catch(() => res.status(400).json({ error: 'Email already exists' }) || { rows: [] });
   if (rows[0]) res.json({ token: sign(rows[0].id), user: rows[0] });
@@ -49,7 +49,7 @@ app.post('/auth/register', async (req, res) => {
 // Login
 app.post('/auth/login', async (req, res) => {
   const { email, password } = req.body;
-  const { rows } = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
+  const { rows } = await pool.query('SELECT * FROM "User" WHERE email = $1', [email]);
   const user = rows[0];
   if (!user || !(await bcrypt.compare(password, user.password_hash)))
     return res.status(401).json({ error: 'Invalid credentials' });
@@ -62,7 +62,7 @@ app.post('/api/clerk-user', async (req, res) => {
   if (!clerkId || !email) return res.status(400).json({ error: 'clerkId and email are required' });
   try {
     const { rows } = await pool.query(
-      'INSERT INTO users (clerk_id, email) VALUES ($1, $2) ON CONFLICT (clerk_id) DO UPDATE SET email = EXCLUDED.email RETURNING id, clerk_id, email',
+      'INSERT INTO "User" (clerkId, email) VALUES ($1, $2) ON CONFLICT (clerkId) DO UPDATE SET email = EXCLUDED.email RETURNING id, clerkId, email',
       [clerkId, email]
     );
     res.json({ user: rows[0] || { clerkId, email, existing: true } });
@@ -72,21 +72,22 @@ app.post('/api/clerk-user', async (req, res) => {
   }
 });
 
-// Save lifestyle scores to living_styles table
+// Save lifestyle scores to livingStyles table
 app.post('/api/preferences', async (req, res) => {
   const { clerkId, scores } = req.body;
   if (!clerkId || !scores) return res.status(400).json({ error: 'clerkId and scores are required' });
 
   try {
-    const { rows: users } = await pool.query('SELECT id FROM users WHERE clerk_id = $1', [clerkId]);
+    const { rows: users } = await pool.query('SELECT id FROM "User" WHERE clerkId = $1', [clerkId]);
     if (!users[0]) return res.status(404).json({ error: 'User not found' });
     const userId = users[0].id;
 
-    await pool.query('DELETE FROM living_styles WHERE user_id = $1', [userId]);
+    // Updated to match your livingStyles table and camelCase columns
+    await pool.query('DELETE FROM "livingStyles" WHERE userId = $1', [userId]);
     await pool.query(
-      `INSERT INTO living_styles (user_id, clerk_id, sleep_schedule, cleanliness, noise_level, guests, pets)
-       VALUES ($1, $2, $3, $4, $5, $6, $7)`,
-      [userId, clerkId, scores.sleepSchedule, scores.cleanliness, scores.noiseTolerance, scores.guestsFrequency, scores.pets || '']
+      `INSERT INTO "livingStyles" (userId, sleepSchedule, cleanliness, noiseLevel, guests, pets)
+       VALUES ($1, $2, $3, $4, $5, $6)`,
+      [userId, scores.sleepSchedule, scores.cleanliness, scores.noiseTolerance, scores.guestsFrequency, scores.pets || '']
     );
 
     res.json({ success: true });
@@ -101,8 +102,82 @@ app.use(authenticate);
 
 // Protected API routes
 app.get('/api/me', async (req, res) => {
-  const { rows } = await pool.query('SELECT id, email FROM users WHERE id = $1', [req.userId]);
+  const { rows } = await pool.query('SELECT id, email FROM "User" WHERE id = $1', [req.userId]);
   res.json(rows[0]);
+});
+
+// --- Roommate Chat API Routes ---
+
+// Get the user's guaranteed roommate match from roomatePairs
+app.get('/api/my-roommate', async (req, res) => {
+  try {
+    const { rows } = await pool.query(
+      `SELECT rp.id as pairId, rp.status, 
+              u.id as roommateId, u.email as roommateEmail
+       FROM "roomatePairs" rp
+       JOIN "User" u ON (u.id = rp.user1Id OR u.id = rp.user2Id)
+       WHERE (rp.user1Id = $1 OR rp.user2Id = $1) 
+         AND u.id != $1
+         AND rp.status = 'guaranteed'`,
+      [req.userId]
+    );
+    
+    if (rows.length === 0) return res.json({ roommate: null });
+    res.json({ roommate: rows[0] });
+  } catch (err) {
+    console.error('Error fetching roommate:', err);
+    res.status(500).json({ error: 'Failed to fetch roommate' });
+  }
+});
+
+// Fetch message history from privateMessages
+app.get('/api/chat/:pairId', async (req, res) => {
+  const { pairId } = req.params;
+  try {
+    const pairCheck = await pool.query(
+      'SELECT * FROM "roomatePairs" WHERE id = $1 AND (user1Id = $2 OR user2Id = $2)',
+      [pairId, req.userId]
+    );
+    if (pairCheck.rows.length === 0) {
+      return res.status(403).json({ error: 'Unauthorized to view this chat' });
+    }
+
+    const { rows } = await pool.query(
+      'SELECT * FROM "privateMessages" WHERE pairId = $1 ORDER BY createdAt ASC',
+      [pairId]
+    );
+    res.json({ messages: rows });
+  } catch (err) {
+    console.error('Error fetching messages:', err);
+    res.status(500).json({ error: 'Failed to fetch messages' });
+  }
+});
+
+// Send a new message to privateMessages
+app.post('/api/chat/:pairId', async (req, res) => {
+  const { pairId } = req.params;
+  const { text } = req.body;
+  
+  if (!text) return res.status(400).json({ error: 'Message text is required' });
+
+  try {
+    const pairCheck = await pool.query(
+      'SELECT * FROM "roomatePairs" WHERE id = $1 AND (user1Id = $2 OR user2Id = $2)',
+      [pairId, req.userId]
+    );
+    if (pairCheck.rows.length === 0) {
+      return res.status(403).json({ error: 'Unauthorized to send messages here' });
+    }
+
+    const { rows } = await pool.query(
+      'INSERT INTO "privateMessages" (pairId, senderId, messageText) VALUES ($1, $2, $3) RETURNING *',
+      [pairId, req.userId, text]
+    );
+    res.json({ message: rows[0] });
+  } catch (err) {
+    console.error('Error sending message:', err);
+    res.status(500).json({ error: 'Failed to send message' });
+  }
 });
 
 app.listen(process.env.PORT, () => console.log(`Server on port ${process.env.PORT}`));

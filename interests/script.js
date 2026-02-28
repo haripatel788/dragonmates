@@ -1,6 +1,5 @@
 const STORAGE_KEY = 'roommatePrefs';
 
-// Score keys for 1-5 star ratings
 const SCORE_KEYS = [
     'cleanliness', 'sleepSchedule', 'noiseTolerance', 'guestsFrequency',
     'cookingHabits', 'timeAtHome', 'temperaturePref', 'gymInterest', 'mediaInterest'
@@ -56,7 +55,6 @@ function savePrefs(prefs) {
 function collectFormData() {
     const prefs = getPrefs();
 
-    // Dealbreakers
     prefs.dealbreakers = {
         smoking: document.getElementById('smoking')?.value || '',
         pets: document.getElementById('pets')?.value || '',
@@ -80,7 +78,6 @@ function collectFormData() {
         }
     });
 
-    // Personal
     prefs.personal = {
         major: document.getElementById('major')?.value || '',
         year: document.getElementById('year')?.value || '',
@@ -94,7 +91,6 @@ function collectFormData() {
 function loadFormData() {
     const prefs = getPrefs();
 
-    // Dealbreakers
     const db = prefs.dealbreakers || {};
     const setVal = (id, val) => { const el = document.getElementById(id); if (el && val) el.value = val; };
     setVal('smoking', db.smoking);
@@ -107,7 +103,6 @@ function loadFormData() {
     setVal('genderPref', db.genderPref);
     setVal('roomType', db.roomType);
 
-    // Personal
     const p = prefs.personal || {};
     setVal('major', p.major);
     setVal('year', p.year);
@@ -117,7 +112,6 @@ function loadFormData() {
         if (cb) cb.checked = true;
     });
 
-    // Stars (scores are in prefs.scores, initStars + showSavedStars will render them)
     SCORE_KEYS.forEach(key => {
         const ratingEl = document.querySelector(`[data-key="${key}"]`);
         showSavedStars(ratingEl, key);
@@ -141,20 +135,30 @@ async function savePreferences() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 clerkId: user.id,
-                scores: prefs.scores
+                scores: {
+                    sleepSchedule: prefs.scores.sleepSchedule,
+                    cleanliness: prefs.scores.cleanliness,
+                    noiseTolerance: prefs.scores.noiseTolerance,
+                    guestsFrequency: prefs.scores.guestsFrequency,
+                    pets: prefs.dealbreakers.pets
+                }
             })
         });
-        if (!res.ok) throw new Error('Failed to save');
+
+        if (!res.ok) {
+            const errorData = await res.json();
+            throw new Error(errorData.error || 'Failed to save');
+        }
+
         if (msg) {
             msg.classList.remove('hidden');
             setTimeout(() => msg.classList.add('hidden'), 3000);
         }
     } catch (err) {
         console.error('Error saving preferences:', err);
-        alert('Failed to save preferences. Please try again.');
+        alert(`Failed to save: ${err.message}`);
     }
 }
-
 function goBack() {
     window.history.back();
 }

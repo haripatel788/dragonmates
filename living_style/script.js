@@ -1,41 +1,43 @@
-function savePreferences() {
+async function savePreferences() {
     const prefs = {
         sleepSchedule: document.getElementById("sleepSchedule").value,
         cleanliness: document.getElementById("cleanliness").value,
-        noise: document.getElementById("noise").value,
-        guests: document.getElementById("guests").value,
-        pets: document.getElementById("pets").value,
-        interests: document.getElementById("interests").value.split(",").map(i => i.trim())
+        noiseLevel: document.getElementById("noise").value,
+        guestsFrequency: document.getElementById("guests").value,
+        pets: document.getElementById("pets").value
     };
 
     localStorage.setItem("roommatePrefs", JSON.stringify(prefs));
-    document.getElementById("profileDisplay").innerHTML = "Preferences saved!";
-}
-
-function loadPreferences() {
-    const saved = JSON.parse(localStorage.getItem("roommatePrefs"));
-
-    if (!saved) {
-        document.getElementById("profileDisplay").innerHTML = "No saved preferences.";
+    const user = window.Clerk?.user;
+    if (!user) {
+        alert('Please sign in first.');
         return;
     }
-    document.getElementById("sleepSchedule").value = saved.sleepSchedule;
-    document.getElementById("cleanliness").value = saved.cleanliness;
-    document.getElementById("noise").value = saved.noise;
-    document.getElementById("guests").value = saved.guests;
-    document.getElementById("pets").value = saved.pets;
-    document.getElementById("interests").value = saved.interests.join(", ");
 
-    document.getElementById("profileDisplay").innerHTML = `
-        <strong>Sleep:</strong> ${saved.sleepSchedule} <br>
-        <strong>Cleanliness:</strong> ${saved.cleanliness} <br>
-        <strong>Noise:</strong> ${saved.noise} <br>
-        <strong>Guests:</strong> ${saved.guests} <br>
-        <strong>Pets:</strong> ${saved.pets} <br>
-        <strong>Interests:</strong> ${saved.interests.join(", ")}
-    `;
+    try {
+        const res = await fetch('/api/preferences', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                clerkId: user.id,
+                scores: {
+                    sleepSchedule: prefs.sleepSchedule,
+                    cleanliness: prefs.cleanliness,
+                    noiseTolerance: prefs.noiseLevel,
+                    guestsFrequency: prefs.guestsFrequency,
+                    pets: prefs.pets
+                }
+            })
+        });
 
-    const score = Math.floor(Math.random() * 40) + 60;
-    document.getElementById("matchResult").innerHTML = 
-        `Match Score: <strong>${score}%</strong> (stub example)`;
+        if (!res.ok) {
+            const errorData = await res.json();
+            throw new Error(errorData.error || 'Failed to save');
+        }
+        
+        document.getElementById("profileDisplay").innerHTML = "Preferences saved to database!";
+    } catch (err) {
+        console.error('Error saving preferences:', err);
+        document.getElementById("profileDisplay").innerHTML = "Error: " + err.message;
+    }
 }

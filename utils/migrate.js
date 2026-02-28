@@ -9,42 +9,11 @@ const migrate = async () => {
   console.log('Running migrations...');
 
   try {
-    // Users table (for custom auth - may not need if using Clerk only)
-    await pool.query(`
-      CREATE TABLE IF NOT EXISTS users (
-        id SERIAL PRIMARY KEY,
-        clerk_id VARCHAR(255) UNIQUE,
-        email VARCHAR(255) UNIQUE NOT NULL,
-        password_hash VARCHAR(255),
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-      )
-    `);
-    console.log('Created users table');
-
-    // Profiles table
-    await pool.query(`
-      CREATE TABLE IF NOT EXISTS profiles (
-        id SERIAL PRIMARY KEY,
-        user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
-        clerk_id VARCHAR(255),
-        name VARCHAR(255),
-        major VARCHAR(255),
-        year VARCHAR(50),
-        age INTEGER,
-        bio TEXT,
-        profile_image VARCHAR(500),
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-      )
-    `);
-    console.log('Created profiles table');
-
-    // Living style preferences
+    // 1. Living style preferences - linked to "User"
     await pool.query(`
       CREATE TABLE IF NOT EXISTS living_styles (
         id SERIAL PRIMARY KEY,
-        user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
-        clerk_id VARCHAR(255),
+        user_id INTEGER REFERENCES "User"(id) ON DELETE CASCADE,
         sleep_schedule VARCHAR(50),
         cleanliness VARCHAR(50),
         noise_level VARCHAR(50),
@@ -56,36 +25,42 @@ const migrate = async () => {
     `);
     console.log('Created living_styles table');
 
-    // Interests
+    // 2. Interests - linked to "User"
     await pool.query(`
       CREATE TABLE IF NOT EXISTS interests (
         id SERIAL PRIMARY KEY,
-        user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
-        clerk_id VARCHAR(255),
+        user_id INTEGER REFERENCES "User"(id) ON DELETE CASCADE,
         interest VARCHAR(255) NOT NULL,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
     console.log('Created interests table');
 
-    // Housing preferences
+    // 3. Roommate Pairs (For your Chat Feature) - linked to "User"
     await pool.query(`
-      CREATE TABLE IF NOT EXISTS housing_preferences (
+      CREATE TABLE IF NOT EXISTS roommate_pairs (
         id SERIAL PRIMARY KEY,
-        user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
-        clerk_id VARCHAR(255),
-        location VARCHAR(255),
-        budget_min INTEGER,
-        budget_max INTEGER,
-        move_in_date DATE,
-        lease_duration INTEGER,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        user1_id INTEGER REFERENCES "User"(id) ON DELETE CASCADE,
+        user2_id INTEGER REFERENCES "User"(id) ON DELETE CASCADE,
+        status VARCHAR(50) DEFAULT 'guaranteed',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
-    console.log('Created housing_preferences table');
+    console.log('Created roommate_pairs table');
 
-    console.log('All migrations completed successfully!');
+    // 4. Private Messages - linked to "User"
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS private_messages (
+        id SERIAL PRIMARY KEY,
+        pair_id INTEGER REFERENCES roommate_pairs(id) ON DELETE CASCADE,
+        sender_id INTEGER REFERENCES "User"(id) ON DELETE CASCADE,
+        message_text TEXT NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+    console.log('Created private_messages table');
+
+    console.log('All migrations completed successfully and linked to the "User" table!');
   } catch (err) {
     console.error('Migration failed:', err);
   } finally {
