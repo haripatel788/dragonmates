@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Notifications</title>
+</head>
+<body>
+  <h1>Notifications</h1>
+  <ul id="notificationsList">
+    <li>Loading notifications...</li>
+  </ul>
+
+  <script>
+    const notificationsList = document.getElementById("notificationsList");
+
+    // Replace with the signed-in user's ID
+    const userId = "SIGNED_IN_USER_ID";
+
+    async function loadNotifications() {
+      notificationsList.innerHTML = "<li>Loading notifications...</li>";
+
+      try {
+        // Call your backend GET endpoint
+        const response = await fetch(`/api/notifications?userId=${userId}`);
+        const data = await response.json();
+
+        if (!data || data.length === 0) {
+          notificationsList.innerHTML = "<li>No notifications yet</li>";
+          return;
+        }
+
+        notificationsList.innerHTML = "";
+
+        data.forEach((notif) => {
+          const li = document.createElement("li");
+          li.textContent = notif.message;
+
+          // Add "Mark as read" button if unread
+          if (!notif.read) {
+            const button = document.createElement("button");
+            button.textContent = "Mark as read";
+            button.onclick = async () => {
+              await fetch(`/api/notifications/read`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ notificationId: notif.id }),
+              });
+              li.textContent = notif.message + " (read)";
+              button.remove();
+            };
+            li.appendChild(button);
+          }
+
+          notificationsList.appendChild(li);
+        });
+      } catch (err) {
+        notificationsList.innerHTML = "<li>Error loading notifications</li>";
+        console.error(err);
+      }
+    }
+
+    loadNotifications();
+  </script>
+</body>
+</html>

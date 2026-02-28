@@ -1,17 +1,27 @@
 // pages/api/notifications/read.js
-export default function handler(req, res) {
+import { Pool } from "pg";
+
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL, // Doppler env variable
+});
+
+export default async function handler(req, res) {
   if (req.method !== "POST") {
     return res.status(405).json({ message: "Method not allowed" });
   }
 
   const { notificationId } = req.body;
-
   if (!notificationId) {
     return res.status(400).json({ message: "Missing notificationId" });
   }
 
-  // In a real app, update your database to mark this notification as read
-  console.log(`Notification ${notificationId} marked as read`);
-
-  res.status(200).json({ message: "Notification marked as read" });
+  try {
+    await pool.query("UPDATE notifications SET read = TRUE WHERE id = $1", [
+      notificationId,
+    ]);
+    res.status(200).json({ message: "Notification marked as read" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Error marking notification as read" });
+  }
 }

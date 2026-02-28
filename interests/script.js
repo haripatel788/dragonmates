@@ -130,6 +130,7 @@ async function savePreferences() {
     }
 
     try {
+        // Save living style scores
         const res = await fetch('/api/preferences', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -144,12 +145,7 @@ async function savePreferences() {
                 }
             })
         });
-
-        if (!res.ok) {
-            const errorData = await res.json();
-            throw new Error(errorData.error || 'Failed to save');
-        }
-
+        if (!res.ok) throw new Error('Failed to save');
         if (msg) {
             msg.classList.remove('hidden');
             setTimeout(() => msg.classList.add('hidden'), 3000);
