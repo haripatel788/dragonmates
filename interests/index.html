@@ -38,9 +38,10 @@
             }
             // Sync Clerk user to Neon DB (runs on first visit after sign-up)
             const user = window.Clerk.user;
-            const token = await window.Clerk.session?.getToken();
+            let token = await window.Clerk.session?.getToken();
+            if (!token) token = localStorage.getItem('token');
             if (!token) {
-                console.error('Missing Clerk token while syncing user');
+                console.error('Missing auth token while syncing user');
                 return;
             }
             fetch('/api/clerk-user', {

@@ -9,7 +9,7 @@ function signOut() {
 }
 
 function sendMessage() {
-    alert('Message feature coming soon!');
+    window.location.href = '/chat';
 }
 
 function saveProfile() {

@@ -30,6 +30,38 @@ const getBearerToken = (req) => {
   return null;
 };
 
+const tryDevClerkDecode = async (token, req, next) => {
+  try {
+    const decoded = jwt.decode(token);
+    const sub = decoded?.sub;
+    const iss = decoded?.iss;
+    const isClerkLikeUser = typeof sub === 'string' && sub.startsWith('user_');
+    const isClerkIssuer = typeof iss === 'string' && iss.includes('clerk');
+    if (!isClerkLikeUser || !isClerkIssuer) return false;
+
+    if (process.env.NODE_ENV === 'production') return false;
+
+    const { rows } = await pool.query(
+      'SELECT id, email, "clerkId" FROM "User" WHERE "clerkId" = $1 LIMIT 1',
+      [sub]
+    );
+    if (!rows[0]) {
+      req.userId = null;
+      req.clerkId = sub;
+      req.user = null;
+      next();
+      return true;
+    }
+    req.userId = rows[0].id;
+    req.clerkId = rows[0].clerkId;
+    req.user = rows[0];
+    next();
+    return true;
+  } catch (_) {
+    return false;
+  }
+};
+
 // Auth middleware
 const authenticate = async (req, res, next) => {
   const token = getBearerToken(req);
@@ -62,44 +94,13 @@ const authenticate = async (req, res, next) => {
       }
     }
   } catch (_) {
-    // Fall back to legacy JWT below
+    // If Clerk verification fails in non-production, allow dev decode fallback.
+    if (looksLikeJwt && (await tryDevClerkDecode(token, req, next))) return;
   }
 
   // Dev-only fallback when Clerk verification keys are not configured.
-  // This keeps local flows working, but production must verify signatures.
   if (looksLikeJwt && !process.env.CLERK_SECRET_KEY && !process.env.CLERK_JWT_KEY) {
-    try {
-      const decoded = jwt.decode(token);
-      const sub = decoded?.sub;
-      const iss = decoded?.iss;
-      const isClerkLikeUser = typeof sub === 'string' && sub.startsWith('user_');
-      const isClerkIssuer = typeof iss === 'string' && iss.includes('clerk');
-
-      if (isClerkLikeUser && isClerkIssuer) {
-        if (process.env.NODE_ENV === 'production') {
-          return res.status(500).json({
-            error: 'Server auth misconfigured: set CLERK_SECRET_KEY or CLERK_JWT_KEY'
-          });
-        }
-
-        const { rows } = await pool.query(
-          'SELECT id, email, "clerkId" FROM "User" WHERE "clerkId" = $1 LIMIT 1',
-          [sub]
-        );
-        if (!rows[0]) {
-          req.userId = null;
-          req.clerkId = sub;
-          req.user = null;
-          return next();
-        }
-        req.userId = rows[0].id;
-        req.clerkId = rows[0].clerkId;
-        req.user = rows[0];
-        return next();
-      }
-    } catch (_) {
-      // Continue to legacy JWT path
-    }
+    if (await tryDevClerkDecode(token, req, next)) return;
   }
 
   // Legacy JWT tokens from /auth/login

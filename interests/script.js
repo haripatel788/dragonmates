@@ -52,6 +52,21 @@ function savePrefs(prefs) {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(prefs));
 }
 
+async function getAuthHeaders() {
+    let token = null;
+    try {
+        token = await window.Clerk?.session?.getToken();
+    } catch (_) {
+        // ignore
+    }
+    if (!token) token = localStorage.getItem('token');
+    if (!token) throw new Error('Missing authentication token');
+    return {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+    };
+}
+
 function collectFormData() {
     const prefs = getPrefs();
 
@@ -130,12 +145,7 @@ async function savePreferences() {
     }
 
     try {
-        const token = await window.Clerk.session?.getToken();
-        if (!token) throw new Error('Missing session token');
-        const headers = {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
-        };
+        const headers = await getAuthHeaders();
 
         // Save living style scores
         const prefRes = await fetch('/api/preferences', {
