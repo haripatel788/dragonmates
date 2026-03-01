@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Roommate Chat - Dragonmates</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .sent-message { display: flex; justify-content: flex-end; background-color: #C69214; color: #002D62; }
+        .received-message { display: flex; justify-content: flex-start; background-color: #E5E7EB; color: #1F2937; }
+    </style>
+</head>
+<body class="bg-gray-50 h-screen flex flex-col">
+    <header class="bg-drexel-blue text-white p-4 flex items-center gap-4">
+        <a href="/browse" class="text-white">&larr;</a>
+        <h1 id="roommate-name" class="font-bold">Loading Chat...</h1>
+    </header>
+
+    <div id="chat-box" class="flex-1 overflow-y-auto p-4 flex flex-col gap-3">
+        </div>
+
+    <div class="p-4 bg-white border-t flex gap-2">
+        <input id="message-input" type="text" class="flex-1 border p-2 rounded-lg" placeholder="Type a message...">
+        <button id="send-button" class="bg-drexel-gold text-drexel-blue px-4 py-2 rounded-lg font-bold">Send</button>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>

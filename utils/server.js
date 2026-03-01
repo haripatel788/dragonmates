@@ -151,74 +151,49 @@ app.get('/api/me', async (req, res) => {
 
 // --- Roommate Chat API Routes ---
 
-// Get the user's guaranteed roommate match from roomatePairs
+// 1. Get the current user's roommate pair
 app.get('/api/my-roommate', async (req, res) => {
   try {
     const { rows } = await pool.query(
-      `SELECT rp.id as pairId, rp.status, 
-              u.id as roommateId, u.email as roommateEmail
-       FROM "roomatePairs" rp
+      `SELECT rp.id as pairId, u.id as roommateId, u.email as roommateEmail
+       FROM "roommatePairs" rp
        JOIN "User" u ON (u.id = rp.user1Id OR u.id = rp.user2Id)
        WHERE (rp.user1Id = $1 OR rp.user2Id = $1) 
          AND u.id != $1
          AND rp.status = 'guaranteed'`,
       [req.userId]
     );
-    
-    if (rows.length === 0) return res.json({ roommate: null });
-    res.json({ roommate: rows[0] });
+    res.json({ roommate: rows[0] || null });
   } catch (err) {
-    console.error('Error fetching roommate:', err);
     res.status(500).json({ error: 'Failed to fetch roommate' });
   }
 });
 
-// Fetch message history from privateMessages
+// 2. Fetch messages for a specific pair
 app.get('/api/chat/:pairId', async (req, res) => {
   const { pairId } = req.params;
   try {
-    const pairCheck = await pool.query(
-      'SELECT * FROM "roomatePairs" WHERE id = $1 AND (user1Id = $2 OR user2Id = $2)',
-      [pairId, req.userId]
-    );
-    if (pairCheck.rows.length === 0) {
-      return res.status(403).json({ error: 'Unauthorized to view this chat' });
-    }
-
     const { rows } = await pool.query(
-      'SELECT * FROM "privateMessages" WHERE pairId = $1 ORDER BY createdAt ASC',
+      'SELECT * FROM "privateMessages" WHERE "pairId" = $1 ORDER BY "createdAt" ASC',
       [pairId]
     );
     res.json({ messages: rows });
   } catch (err) {
-    console.error('Error fetching messages:', err);
     res.status(500).json({ error: 'Failed to fetch messages' });
   }
 });
 
-// Send a new message to privateMessages
+// 3. Send a new message
 app.post('/api/chat/:pairId', async (req, res) => {
   const { pairId } = req.params;
   const { text } = req.body;
-  
-  if (!text) return res.status(400).json({ error: 'Message text is required' });
-
   try {
-    const pairCheck = await pool.query(
-      'SELECT * FROM "roomatePairs" WHERE id = $1 AND (user1Id = $2 OR user2Id = $2)',
-      [pairId, req.userId]
-    );
-    if (pairCheck.rows.length === 0) {
-      return res.status(403).json({ error: 'Unauthorized to send messages here' });
-    }
-
     const { rows } = await pool.query(
-      'INSERT INTO "privateMessages" (pairId, senderId, messageText) VALUES ($1, $2, $3) RETURNING *',
+      'INSERT INTO "privateMessages" ("pairId", "senderId", "messageText") VALUES ($1, $2, $3) RETURNING *',
       [pairId, req.userId, text]
     );
     res.json({ message: rows[0] });
   } catch (err) {
-    console.error('Error sending message:', err);
     res.status(500).json({ error: 'Failed to send message' });
   }
 });

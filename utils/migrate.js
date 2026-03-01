@@ -60,6 +60,28 @@ const migrate = async () => {
     `);
     console.log('Created private_messages table');
 
+    // Roommate Pairs Table (Stores guaranteed matches)
+await pool.query(`
+  CREATE TABLE IF NOT EXISTS roommate_pairs (
+    id SERIAL PRIMARY KEY,
+    user1_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+    user2_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+    status VARCHAR(50) DEFAULT 'guaranteed',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  )
+`);
+
+// Private Messages Table (Stores the actual chat)
+await pool.query(`
+  CREATE TABLE IF NOT EXISTS private_messages (
+    id SERIAL PRIMARY KEY,
+    pair_id INTEGER REFERENCES roommate_pairs(id) ON DELETE CASCADE,
+    sender_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+    message_text TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  )
+`);
+
     console.log('All migrations completed successfully and linked to the "User" table!');
   } catch (err) {
     console.error('Migration failed:', err);
