@@ -35,7 +35,9 @@ const authenticate = async (req, res, next) => {
   const token = getBearerToken(req);
   if (!token) return res.status(401).json({ error: 'Unauthorized' });
 
-  // Clerk session tokens
+  const looksLikeJwt = token.split('.').length === 3;
+
+  // Clerk session tokens (verified)
   try {
     if (process.env.CLERK_SECRET_KEY || process.env.CLERK_JWT_KEY) {
       const payload = await verifyToken(token, {
@@ -63,8 +65,48 @@ const authenticate = async (req, res, next) => {
     // Fall back to legacy JWT below
   }
 
+  // Dev-only fallback when Clerk verification keys are not configured.
+  // This keeps local flows working, but production must verify signatures.
+  if (looksLikeJwt && !process.env.CLERK_SECRET_KEY && !process.env.CLERK_JWT_KEY) {
+    try {
+      const decoded = jwt.decode(token);
+      const sub = decoded?.sub;
+      const iss = decoded?.iss;
+      const isClerkLikeUser = typeof sub === 'string' && sub.startsWith('user_');
+      const isClerkIssuer = typeof iss === 'string' && iss.includes('clerk');
+
+      if (isClerkLikeUser && isClerkIssuer) {
+        if (process.env.NODE_ENV === 'production') {
+          return res.status(500).json({
+            error: 'Server auth misconfigured: set CLERK_SECRET_KEY or CLERK_JWT_KEY'
+          });
+        }
+
+        const { rows } = await pool.query(
+          'SELECT id, email, "clerkId" FROM "User" WHERE "clerkId" = $1 LIMIT 1',
+          [sub]
+        );
+        if (!rows[0]) {
+          req.userId = null;
+          req.clerkId = sub;
+          req.user = null;
+          return next();
+        }
+        req.userId = rows[0].id;
+        req.clerkId = rows[0].clerkId;
+        req.user = rows[0];
+        return next();
+      }
+    } catch (_) {
+      // Continue to legacy JWT path
+    }
+  }
+
   // Legacy JWT tokens from /auth/login
   try {
+    if (!process.env.JWT_SECRET) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
     const payload = jwt.verify(token, process.env.JWT_SECRET);
     req.userId = payload.userId;
     const { rows } = await pool.query(
