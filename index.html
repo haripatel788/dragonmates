@@ -135,13 +135,26 @@
 
     <script>
         window.addEventListener('load', async () => {
-            await window.Clerk.load();
-            const user = window.Clerk.user;
             const authBtns = document.getElementById('authButtons');
             const loggedInNav = document.getElementById('loggedInNav');
             const heroCta = document.getElementById('heroCta');
             const loggedInCta = document.getElementById('loggedInCta');
             const quickLinks = document.getElementById('quickLinks');
+
+            const hasLegacyToken = Boolean(localStorage.getItem('token'));
+            if (!window.Clerk?.load) {
+                if (hasLegacyToken) {
+                    if (authBtns) authBtns.classList.add('hidden');
+                    if (loggedInNav) loggedInNav.classList.remove('hidden');
+                    if (heroCta) heroCta.classList.add('hidden');
+                    if (loggedInCta) loggedInCta.classList.remove('hidden');
+                    if (quickLinks) quickLinks.classList.remove('hidden');
+                }
+                return;
+            }
+
+            await window.Clerk.load();
+            const user = window.Clerk.user || (hasLegacyToken ? { legacy: true } : null);
 
             if (user) {
                 if (authBtns) authBtns.classList.add('hidden');
@@ -151,7 +164,13 @@
                 if (quickLinks) quickLinks.classList.remove('hidden');
 
                 document.getElementById('signOutBtn')?.addEventListener('click', () => {
-                    window.Clerk.signOut().then(() => location.reload());
+                    if (window.Clerk?.signOut) {
+                        window.Clerk.signOut().then(() => location.reload());
+                    } else {
+                        localStorage.removeItem('token');
+                        localStorage.removeItem('user');
+                        location.reload();
+                    }
                 });
             }
         });

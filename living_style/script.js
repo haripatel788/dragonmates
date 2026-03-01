@@ -9,14 +9,17 @@ async function savePreferences() {
     };
 
     localStorage.setItem("roommatePrefs", JSON.stringify(prefs));
-    const user = window.Clerk?.user;
-    if (!user) {
+    const user = window.Clerk?.user || null;
+    const hasLegacyToken = Boolean(localStorage.getItem('token'));
+    if (!user && !hasLegacyToken) {
         alert('Please sign in first.');
         return;
     }
 
     try {
-        const token = await window.Clerk.session?.getToken();
+        let token = await window.Clerk?.session?.getToken();
+        if (!token) token = localStorage.getItem('token');
+        if (token === 'null' || token === 'undefined') token = null;
         if (!token) throw new Error('Missing session token');
 
         const res = await fetch('/api/preferences', {

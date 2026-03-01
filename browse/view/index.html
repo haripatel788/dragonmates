@@ -30,8 +30,11 @@
 <body class="bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen p-5">
     <script>
         window.addEventListener('load', async () => {
-            await window.Clerk.load();
-            if (!window.Clerk.user) {
+            const hasLegacyToken = Boolean(localStorage.getItem('token'));
+            if (window.Clerk?.load) {
+                await window.Clerk.load();
+            }
+            if (!window.Clerk?.user && !hasLegacyToken) {
                 window.location.href = '/auth/login';
             }
         });

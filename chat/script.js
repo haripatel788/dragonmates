@@ -37,13 +37,16 @@ document.addEventListener('DOMContentLoaded', async () => {
     };
 
     const getAuthHeaders = async () => {
-        await window.Clerk.load();
-        if (!window.Clerk.user && !localStorage.getItem('token')) {
+        if (window.Clerk?.load) {
+            await window.Clerk.load();
+        }
+        if (!window.Clerk?.user && !localStorage.getItem('token')) {
             window.location.href = '/auth/login';
             return null;
         }
-        let token = await window.Clerk.session?.getToken();
+        let token = await window.Clerk?.session?.getToken();
         if (!token) token = localStorage.getItem('token');
+        if (token === 'null' || token === 'undefined') token = null;
         if (!token) return null;
         return { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` };
     };

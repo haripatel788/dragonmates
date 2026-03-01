@@ -27,7 +27,6 @@
             }
         }
     </script>
-    <link rel="stylesheet" href="style.css">
 </head>
 <body class="bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen p-5">
     <div class="max-w-4xl mx-auto">
@@ -323,8 +322,11 @@
         }
 
         window.addEventListener('load', async () => {
-            await window.Clerk.load();
-            if (!window.Clerk.user) {
+            const hasLegacyToken = Boolean(localStorage.getItem('token'));
+            if (window.Clerk?.load) {
+                await window.Clerk.load();
+            }
+            if (!window.Clerk?.user && !hasLegacyToken) {
                 window.location.href = '/auth/login';
                 return;
             }
@@ -334,7 +336,13 @@
         function goBack() { window.history.back(); }
 
         function signOut() {
-            window.Clerk.signOut().then(() => { window.location.href = '/'; });
+            if (window.Clerk?.signOut) {
+                window.Clerk.signOut().then(() => { window.location.href = '/'; });
+            } else {
+                localStorage.removeItem('token');
+                localStorage.removeItem('user');
+                window.location.href = '/';
+            }
         }
 
         function sendMessage() { window.location.href = '/chat'; }

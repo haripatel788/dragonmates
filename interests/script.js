@@ -60,6 +60,7 @@ async function getAuthHeaders() {
         // ignore
     }
     if (!token) token = localStorage.getItem('token');
+    if (token === 'null' || token === 'undefined') token = null;
     if (!token) throw new Error('Missing authentication token');
     return {
         'Content-Type': 'application/json',
@@ -138,8 +139,9 @@ async function savePreferences() {
     savePrefs(prefs);
 
     const msg = document.getElementById('saveMessage');
-    const user = window.Clerk?.user;
-    if (!user) {
+    const hasLegacyToken = Boolean(localStorage.getItem('token'));
+    const user = window.Clerk?.user || null;
+    if (!user && !hasLegacyToken) {
         alert('Please sign in first.');
         return;
     }
@@ -195,9 +197,15 @@ function goBack() {
 }
 
 function signOut() {
-    window.Clerk.signOut().then(() => {
+    if (window.Clerk?.signOut) {
+        window.Clerk.signOut().then(() => {
+            window.location.href = '/';
+        });
+    } else {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
         window.location.href = '/';
-    });
+    }
 }
 
 // Init

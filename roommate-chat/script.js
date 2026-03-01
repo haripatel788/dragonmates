@@ -9,13 +9,16 @@ document.addEventListener('DOMContentLoaded', async () => {
     let headers = null;
 
     async function makeAuthHeaders() {
-        await window.Clerk.load();
-        if (!window.Clerk.user && !localStorage.getItem('token')) {
+        if (window.Clerk?.load) {
+            await window.Clerk.load();
+        }
+        if (!window.Clerk?.user && !localStorage.getItem('token')) {
             window.location.href = '/auth/login';
             return null;
         }
-        let token = await window.Clerk.session?.getToken();
+        let token = await window.Clerk?.session?.getToken();
         if (!token) token = localStorage.getItem('token');
+        if (token === 'null' || token === 'undefined') token = null;
         if (!token) return null;
         return { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' };
     }
