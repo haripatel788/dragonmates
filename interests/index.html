@@ -38,9 +38,17 @@
             }
             // Sync Clerk user to Neon DB (runs on first visit after sign-up)
             const user = window.Clerk.user;
+            const token = await window.Clerk.session?.getToken();
+            if (!token) {
+                console.error('Missing Clerk token while syncing user');
+                return;
+            }
             fetch('/api/clerk-user', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
                 body: JSON.stringify({
                     clerkId: user.id,
                     email: user.primaryEmailAddress?.emailAddress

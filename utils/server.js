@@ -1,6 +1,7 @@
 const express = require('express');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const { verifyToken } = require('@clerk/backend');
 const cors = require('cors');
 const path = require('path');
 // Load .env only if not using Doppler (Doppler injects env vars directly)
@@ -22,16 +23,75 @@ app.get('/register', (_, res) => res.redirect(301, '/auth/register'));
 app.get('/register.html', (_, res) => res.redirect(301, '/auth/register'));
 
 const sign = (id) => jwt.sign({ userId: id }, process.env.JWT_SECRET, { expiresIn: '7d' });
+const getBearerToken = (req) => {
+  const authHeader = req.headers.authorization || '';
+  const [scheme, token] = authHeader.split(' ');
+  if (scheme === 'Bearer' && token) return token;
+  return null;
+};
 
 // Auth middleware
-const authenticate = (req, res, next) => {
-  const token = req.headers.authorization?.split(' ')[1];
+const authenticate = async (req, res, next) => {
+  const token = getBearerToken(req);
+  if (!token) return res.status(401).json({ error: 'Unauthorized' });
+
+  // Clerk session tokens
   try {
-    req.userId = jwt.verify(token, process.env.JWT_SECRET).userId;
-    next();
-  } catch {
-    res.status(401).json({ error: 'Unauthorized' });
+    if (process.env.CLERK_SECRET_KEY || process.env.CLERK_JWT_KEY) {
+      const payload = await verifyToken(token, {
+        secretKey: process.env.CLERK_SECRET_KEY,
+        jwtKey: process.env.CLERK_JWT_KEY
+      });
+      if (payload?.sub) {
+        const { rows } = await pool.query(
+          'SELECT id, email, "clerkId" FROM "User" WHERE "clerkId" = $1 LIMIT 1',
+          [payload.sub]
+        );
+        if (!rows[0]) {
+          req.userId = null;
+          req.clerkId = payload.sub;
+          req.user = null;
+          return next();
+        }
+        req.userId = rows[0].id;
+        req.clerkId = rows[0].clerkId;
+        req.user = rows[0];
+        return next();
+      }
+    }
+  } catch (_) {
+    // Fall back to legacy JWT below
   }
+
+  // Legacy JWT tokens from /auth/login
+  try {
+    const payload = jwt.verify(token, process.env.JWT_SECRET);
+    req.userId = payload.userId;
+    const { rows } = await pool.query(
+      'SELECT id, email, "clerkId" FROM "User" WHERE id = $1 LIMIT 1',
+      [req.userId]
+    );
+    req.user = rows[0] || { id: req.userId };
+    req.clerkId = rows[0]?.clerkId || null;
+    return next();
+  } catch (_) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+};
+
+const requireDbUser = (req, res, next) => {
+  if (!req.userId) return res.status(404).json({ error: 'User not synced in database' });
+  return next();
+};
+
+const requirePairMembership = async (pairId, userId) => {
+  const { rows } = await pool.query(
+    `SELECT id FROM "roommatePairs"
+     WHERE id = $1 AND ("user1Id" = $2 OR "user2Id" = $2)
+     LIMIT 1`,
+    [pairId, userId]
+  );
+  return Boolean(rows[0]);
 };
 
 // Public routes (no authentication required)
@@ -57,12 +117,17 @@ app.post('/auth/login', async (req, res) => {
 });
 
 // Sync Clerk user to Neon DB after sign-up
-app.post('/api/clerk-user', async (req, res) => {
+app.post('/api/clerk-user', authenticate, async (req, res) => {
   const { clerkId, email } = req.body;
   if (!clerkId || !email) return res.status(400).json({ error: 'clerkId and email are required' });
+  if (req.clerkId && req.clerkId !== clerkId) return res.status(403).json({ error: 'Token/user mismatch' });
   try {
     const { rows } = await pool.query(
-      'INSERT INTO "User" (clerkId, email) VALUES ($1, $2) ON CONFLICT (clerkId) DO UPDATE SET email = EXCLUDED.email RETURNING id, clerkId, email',
+      `INSERT INTO "User" ("clerkId", email)
+       VALUES ($1, $2)
+       ON CONFLICT ("clerkId")
+       DO UPDATE SET email = EXCLUDED.email
+       RETURNING id, "clerkId", email`,
       [clerkId, email]
     );
     res.json({ user: rows[0] || { clerkId, email, existing: true } });
@@ -73,19 +138,16 @@ app.post('/api/clerk-user', async (req, res) => {
 });
 
 // Save lifestyle scores to livingStyles table
-app.post('/api/preferences', async (req, res) => {
-  const { clerkId, scores } = req.body;
-  if (!clerkId || !scores) return res.status(400).json({ error: 'clerkId and scores are required' });
+app.post('/api/preferences', authenticate, requireDbUser, async (req, res) => {
+  const { scores } = req.body;
+  if (!scores) return res.status(400).json({ error: 'scores are required' });
 
   try {
-    const { rows: users } = await pool.query('SELECT id FROM "User" WHERE clerkId = $1', [clerkId]);
-    if (!users[0]) return res.status(404).json({ error: 'User not found' });
-    const userId = users[0].id;
+    const userId = req.userId;
 
-    // Updated to match your livingStyles table and camelCase columns
-    await pool.query('DELETE FROM "livingStyles" WHERE userId = $1', [userId]);
+    await pool.query('DELETE FROM "livingStyles" WHERE "userId" = $1', [userId]);
     await pool.query(
-      `INSERT INTO "livingStyles" (userId, sleepSchedule, cleanliness, noiseLevel, guests, pets)
+      `INSERT INTO "livingStyles" ("userId", "sleepSchedule", "cleanliness", "noiseLevel", "guests", "pets")
        VALUES ($1, $2, $3, $4, $5, $6)`,
       [userId, scores.sleepSchedule, scores.cleanliness, scores.noiseTolerance, scores.guestsFrequency, scores.pets || '']
     );
@@ -98,54 +160,74 @@ app.post('/api/preferences', async (req, res) => {
 });
 
 // Save user interests (hobbies, major, year, personality)
-app.post('/api/interests', async (req, res) => {
-  const { clerkId, hobbies, major, year, personality } = req.body;
-  if (!clerkId) return res.status(400).json({ error: 'clerkId is required' });
+app.post('/api/interests', authenticate, requireDbUser, async (req, res) => {
+  const { hobbies, major, year, personality } = req.body;
 
   try {
-    const { rows: users } = await pool.query('SELECT id FROM users WHERE clerk_id = $1', [clerkId]);
-    if (!users[0]) return res.status(404).json({ error: 'User not found' });
-    const userId = users[0].id;
+    const userId = req.userId;
+    const normalizedHobbies = Array.isArray(hobbies)
+      ? [...new Set(hobbies.map((h) => String(h).trim()).filter(Boolean))]
+      : [];
 
-    // Replace existing interests
-    await pool.query('DELETE FROM interests WHERE user_id = $1', [userId]);
+    await pool.query('BEGIN');
+    await pool.query('DELETE FROM "interests" WHERE "userId" = $1', [userId]);
 
-    // Insert each hobby as a separate interest row
-    if (hobbies && hobbies.length > 0) {
-      const values = hobbies.map((_, i) => `($1, $2, $${i + 3})`).join(', ');
+    if (normalizedHobbies.length > 0) {
       await pool.query(
-        `INSERT INTO interests (user_id, clerk_id, interest) VALUES ${values}`,
-        [userId, clerkId, ...hobbies]
+        `INSERT INTO "interests" ("userId", "interest")
+         SELECT $1, hobby FROM unnest($2::text[]) AS hobby`,
+        [userId, normalizedHobbies]
       );
     }
 
-    // Update or insert profile with major, year, personality
-    const { rows: existing } = await pool.query('SELECT id FROM profiles WHERE user_id = $1', [userId]);
-    if (existing[0]) {
-      await pool.query(
-        `UPDATE profiles SET major = $1, year = $2, updated_at = CURRENT_TIMESTAMP WHERE user_id = $3`,
-        [major || '', year || '', userId]
-      );
-    } else {
-      await pool.query(
-        `INSERT INTO profiles (user_id, clerk_id, major, year) VALUES ($1, $2, $3, $4)`,
-        [userId, clerkId, major || '', year || '']
-      );
-    }
+    // Works with a one-profile-per-user schema.
+    await pool.query(
+      `INSERT INTO "Profile" ("userId", "major", "year", "personality", "updatedAt")
+       VALUES ($1, $2, $3, $4, NOW())
+       ON CONFLICT ("userId")
+       DO UPDATE SET
+         "major" = EXCLUDED."major",
+         "year" = EXCLUDED."year",
+         "personality" = EXCLUDED."personality",
+         "updatedAt" = NOW()`,
+      [userId, major || '', year || '', personality || '']
+    );
 
+    await pool.query('COMMIT');
     res.json({ success: true });
   } catch (err) {
-    console.error('Error saving interests:', err);
-    res.status(500).json({ error: 'Failed to save interests' });
+    try {
+      await pool.query('ROLLBACK');
+    } catch (_) {
+      // ignore rollback errors
+    }
+    // Fallback path for Profile tables that don't yet have personality column
+    try {
+      await pool.query(
+        `INSERT INTO "Profile" ("userId", "major", "year", "updatedAt")
+         VALUES ($1, $2, $3, NOW())
+         ON CONFLICT ("userId")
+         DO UPDATE SET
+           "major" = EXCLUDED."major",
+           "year" = EXCLUDED."year",
+           "updatedAt" = NOW()`,
+        [req.userId, major || '', year || '']
+      );
+      return res.json({ success: true, warning: 'Profile.personality column missing; hobbies saved.' });
+    } catch (fallbackErr) {
+      console.error('Error saving interests:', fallbackErr);
+      return res.status(500).json({ error: 'Failed to save interests' });
+    }
   }
 });
 
 // All routes below this line require authentication
 app.use(authenticate);
+app.use(requireDbUser);
 
 // Protected API routes
 app.get('/api/me', async (req, res) => {
-  const { rows } = await pool.query('SELECT id, email FROM "User" WHERE id = $1', [req.userId]);
+  const { rows } = await pool.query('SELECT id, email, "clerkId" FROM "User" WHERE id = $1', [req.userId]);
   res.json(rows[0]);
 });
 
@@ -171,10 +253,14 @@ app.get('/api/my-roommate', async (req, res) => {
 
 // 2. Fetch messages for a specific pair
 app.get('/api/chat/:pairId', async (req, res) => {
-  const { pairId } = req.params;
+  const pairId = Number.parseInt(req.params.pairId, 10);
+  if (!Number.isInteger(pairId)) return res.status(400).json({ error: 'Invalid pairId' });
   try {
+    const isMember = await requirePairMembership(pairId, req.userId);
+    if (!isMember) return res.status(403).json({ error: 'Forbidden' });
+
     const { rows } = await pool.query(
-      'SELECT * FROM "privateMessages" WHERE "pairId" = $1 ORDER BY "createdAt" ASC',
+      'SELECT id, "pairId", "senderId", "messageText", "createdAt" FROM "privateMessages" WHERE "pairId" = $1 ORDER BY "createdAt" ASC',
       [pairId]
     );
     res.json({ messages: rows });
@@ -185,9 +271,15 @@ app.get('/api/chat/:pairId', async (req, res) => {
 
 // 3. Send a new message
 app.post('/api/chat/:pairId', async (req, res) => {
-  const { pairId } = req.params;
-  const { text } = req.body;
+  const pairId = Number.parseInt(req.params.pairId, 10);
+  const text = String(req.body?.text || '').trim();
+  if (!Number.isInteger(pairId)) return res.status(400).json({ error: 'Invalid pairId' });
+  if (!text) return res.status(400).json({ error: 'Message text is required' });
+  if (text.length > 2000) return res.status(400).json({ error: 'Message too long' });
   try {
+    const isMember = await requirePairMembership(pairId, req.userId);
+    if (!isMember) return res.status(403).json({ error: 'Forbidden' });
+
     const { rows } = await pool.query(
       'INSERT INTO "privateMessages" ("pairId", "senderId", "messageText") VALUES ($1, $2, $3) RETURNING *',
       [pairId, req.userId, text]
@@ -198,4 +290,5 @@ app.post('/api/chat/:pairId', async (req, res) => {
   }
 });
 
-app.listen(process.env.PORT, () => console.log(`Server on port ${process.env.PORT}`));
+const port = Number.parseInt(process.env.PORT, 10) || 3000;
+app.listen(port, () => console.log(`Server on port ${port}`));

@@ -130,12 +130,18 @@ async function savePreferences() {
     }
 
     try {
+        const token = await window.Clerk.session?.getToken();
+        if (!token) throw new Error('Missing session token');
+        const headers = {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+        };
+
         // Save living style scores
-        const res = await fetch('/api/preferences', {
+        const prefRes = await fetch('/api/preferences', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers,
             body: JSON.stringify({
-                clerkId: user.id,
                 scores: {
                     sleepSchedule: prefs.scores.sleepSchedule,
                     cleanliness: prefs.scores.cleanliness,
@@ -145,7 +151,26 @@ async function savePreferences() {
                 }
             })
         });
-        if (!res.ok) throw new Error('Failed to save');
+        if (!prefRes.ok) {
+            const errData = await prefRes.json().catch(() => ({}));
+            throw new Error(errData.error || 'Failed to save preferences');
+        }
+
+        const interestsRes = await fetch('/api/interests', {
+            method: 'POST',
+            headers,
+            body: JSON.stringify({
+                hobbies: prefs.personal.hobbies,
+                major: prefs.personal.major,
+                year: prefs.personal.year,
+                personality: prefs.personal.personality
+            })
+        });
+        if (!interestsRes.ok) {
+            const errData = await interestsRes.json().catch(() => ({}));
+            throw new Error(errData.error || 'Failed to save personal interests');
+        }
+
         if (msg) {
             msg.classList.remove('hidden');
             setTimeout(() => msg.classList.add('hidden'), 3000);

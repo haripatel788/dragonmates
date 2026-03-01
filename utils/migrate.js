@@ -6,83 +6,85 @@ if (!process.env.DOPPLER_PROJECT) {
 }
 
 const migrate = async () => {
-  console.log('Running migrations...');
-
+  console.log('Running schema sanity migrations...');
   try {
-    // 1. Living style preferences - linked to "User"
+    await pool.query('CREATE EXTENSION IF NOT EXISTS pgcrypto');
+
+    // 1) livingStyles
     await pool.query(`
-      CREATE TABLE IF NOT EXISTS living_styles (
+      CREATE TABLE IF NOT EXISTS "livingStyles" (
         id SERIAL PRIMARY KEY,
-        user_id INTEGER REFERENCES "User"(id) ON DELETE CASCADE,
-        sleep_schedule VARCHAR(50),
-        cleanliness VARCHAR(50),
-        noise_level VARCHAR(50),
-        guests VARCHAR(50),
-        pets VARCHAR(50),
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        "userId" TEXT UNIQUE,
+        "sleepSchedule" VARCHAR(50),
+        "cleanliness" VARCHAR(50),
+        "noiseLevel" VARCHAR(50),
+        "guests" VARCHAR(50),
+        "pets" VARCHAR(50),
+        "createdAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        "updatedAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
-    console.log('Created living_styles table');
+    console.log('Ensured livingStyles table');
 
-    // 2. Interests - linked to "User"
+    // 2) interests
     await pool.query(`
-      CREATE TABLE IF NOT EXISTS interests (
+      CREATE TABLE IF NOT EXISTS "interests" (
         id SERIAL PRIMARY KEY,
-        user_id INTEGER REFERENCES "User"(id) ON DELETE CASCADE,
-        interest VARCHAR(255) NOT NULL,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        "userId" TEXT,
+        "interest" VARCHAR(255) NOT NULL,
+        "createdAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
-    console.log('Created interests table');
+    console.log('Ensured interests table');
 
-    // 3. Roommate Pairs (For your Chat Feature) - linked to "User"
+    // 3) Profile
     await pool.query(`
-      CREATE TABLE IF NOT EXISTS roommate_pairs (
-        id SERIAL PRIMARY KEY,
-        user1_id INTEGER REFERENCES "User"(id) ON DELETE CASCADE,
-        user2_id INTEGER REFERENCES "User"(id) ON DELETE CASCADE,
-        status VARCHAR(50) DEFAULT 'guaranteed',
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      CREATE TABLE IF NOT EXISTS "Profile" (
+        id TEXT PRIMARY KEY DEFAULT gen_random_uuid()::text,
+        "userId" TEXT UNIQUE,
+        "major" TEXT,
+        "year" TEXT,
+        "personality" TEXT,
+        "createdAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        "updatedAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
-    console.log('Created roommate_pairs table');
+    console.log('Ensured Profile table');
 
-    // 4. Private Messages - linked to "User"
+    // 4) roommatePairs
     await pool.query(`
-      CREATE TABLE IF NOT EXISTS private_messages (
+      CREATE TABLE IF NOT EXISTS "roommatePairs" (
         id SERIAL PRIMARY KEY,
-        pair_id INTEGER REFERENCES roommate_pairs(id) ON DELETE CASCADE,
-        sender_id INTEGER REFERENCES "User"(id) ON DELETE CASCADE,
-        message_text TEXT NOT NULL,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        "user1Id" TEXT,
+        "user2Id" TEXT,
+        "status" VARCHAR(50) DEFAULT 'guaranteed',
+        "createdAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
-    console.log('Created private_messages table');
+    console.log('Ensured roommatePairs table');
 
-    // Roommate Pairs Table (Stores guaranteed matches)
-await pool.query(`
-  CREATE TABLE IF NOT EXISTS roommate_pairs (
-    id SERIAL PRIMARY KEY,
-    user1_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
-    user2_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
-    status VARCHAR(50) DEFAULT 'guaranteed',
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-  )
-`);
+    // 5) privateMessages
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS "privateMessages" (
+        id SERIAL PRIMARY KEY,
+        "pairId" INTEGER,
+        "senderId" TEXT,
+        "messageText" TEXT NOT NULL,
+        "createdAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+    console.log('Ensured privateMessages table');
 
-// Private Messages Table (Stores the actual chat)
-await pool.query(`
-  CREATE TABLE IF NOT EXISTS private_messages (
-    id SERIAL PRIMARY KEY,
-    pair_id INTEGER REFERENCES roommate_pairs(id) ON DELETE CASCADE,
-    sender_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
-    message_text TEXT NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-  )
-`);
+    // Common performance indexes for workflow paths in this repo
+    await pool.query('CREATE INDEX IF NOT EXISTS "idx_user_clerkId" ON "User" ("clerkId")');
+    await pool.query('CREATE INDEX IF NOT EXISTS "idx_livingStyles_userId" ON "livingStyles" ("userId")');
+    await pool.query('CREATE INDEX IF NOT EXISTS "idx_interests_userId" ON "interests" ("userId")');
+    await pool.query('CREATE INDEX IF NOT EXISTS "idx_profile_userId" ON "Profile" ("userId")');
+    await pool.query('CREATE INDEX IF NOT EXISTS "idx_roommatePairs_user1Id" ON "roommatePairs" ("user1Id")');
+    await pool.query('CREATE INDEX IF NOT EXISTS "idx_roommatePairs_user2Id" ON "roommatePairs" ("user2Id")');
+    await pool.query('CREATE INDEX IF NOT EXISTS "idx_privateMessages_pair_created" ON "privateMessages" ("pairId", "createdAt")');
 
-    console.log('All migrations completed successfully and linked to the "User" table!');
+    console.log('Schema sanity migration completed.');
   } catch (err) {
     console.error('Migration failed:', err);
   } finally {

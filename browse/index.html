@@ -77,7 +77,6 @@
                     matchScore = typeof calculateMatchScore === 'function'
                         ? calculateMatchScore(me, { dealbreakers: p.dealbreakers || {}, scores: p.scores || {}, personal: p.personal || {} })
                         : 75;
-                    if (matchScore === 0) matchScore = 75;
                 } catch (e) {
                     matchScore = 75;
                 }

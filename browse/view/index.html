@@ -77,7 +77,6 @@
             try {
                 if (typeof calculateMatchScore === 'function') {
                     matchScore = calculateMatchScore(me, { dealbreakers: raw.dealbreakers || {}, scores: raw.scores || {}, personal: raw.personal || {} });
-                    if (matchScore === 0) matchScore = 75;
                 }
             } catch (e) {}
             const p = formatProfileForDisplay(raw);

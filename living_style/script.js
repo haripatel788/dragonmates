@@ -1,10 +1,11 @@
 async function savePreferences() {
+    const getVal = (id) => document.getElementById(id)?.value || '';
     const prefs = {
-        sleepSchedule: document.getElementById("sleepSchedule").value,
-        cleanliness: document.getElementById("cleanliness").value,
-        noiseLevel: document.getElementById("noise").value,
-        guestsFrequency: document.getElementById("guests").value,
-        pets: document.getElementById("pets").value
+        sleepSchedule: getVal("sleepSchedule"),
+        cleanliness: getVal("cleanliness"),
+        noiseLevel: getVal("noise"),
+        guestsFrequency: getVal("guests"),
+        pets: getVal("pets")
     };
 
     localStorage.setItem("roommatePrefs", JSON.stringify(prefs));
@@ -15,11 +16,16 @@ async function savePreferences() {
     }
 
     try {
+        const token = await window.Clerk.session?.getToken();
+        if (!token) throw new Error('Missing session token');
+
         const res = await fetch('/api/preferences', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
             body: JSON.stringify({
-                clerkId: user.id,
                 scores: {
                     sleepSchedule: prefs.sleepSchedule,
                     cleanliness: prefs.cleanliness,
@@ -35,9 +41,24 @@ async function savePreferences() {
             throw new Error(errorData.error || 'Failed to save');
         }
         
-        document.getElementById("profileDisplay").innerHTML = "Preferences saved to database!";
+        const profileDisplay = document.getElementById("profileDisplay");
+        if (profileDisplay) profileDisplay.innerHTML = "Preferences saved to database!";
     } catch (err) {
         console.error('Error saving preferences:', err);
-        document.getElementById("profileDisplay").innerHTML = "Error: " + err.message;
+        const profileDisplay = document.getElementById("profileDisplay");
+        if (profileDisplay) profileDisplay.innerHTML = "Error: " + err.message;
+    }
+}
+
+function loadSaved() {
+    try {
+        const prefs = JSON.parse(localStorage.getItem("roommatePrefs") || '{}');
+        if (prefs.sleepSchedule) document.getElementById("sleepSchedule").value = prefs.sleepSchedule;
+        if (prefs.cleanliness) document.getElementById("cleanliness").value = prefs.cleanliness;
+        if (prefs.noiseLevel) document.getElementById("noise").value = prefs.noiseLevel;
+        if (prefs.guestsFrequency) document.getElementById("guests").value = prefs.guestsFrequency;
+        if (prefs.pets) document.getElementById("pets").value = prefs.pets;
+    } catch (err) {
+        console.error('Failed to load saved preferences', err);
     }
 }
