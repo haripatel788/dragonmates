@@ -1,7 +1,7 @@
 import { Pool } from "pg";
 
 const pool = new Pool({
-  connectionString: process.env.DATABASE_URL, // from Doppler or .env
+  connectionString: process.env.DATABASE_URL
 });
 
 export default async function handler(req, res) {
