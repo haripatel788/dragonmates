@@ -149,44 +149,15 @@ async function savePreferences() {
     try {
         const headers = await getAuthHeaders();
 
-        // Save living style scores + dealbreakers
-        const prefRes = await fetch('/api/preferences', {
+        // Save dealbreakers
+        const dealRes = await fetch('/api/dealbreakers', {
             method: 'POST',
             headers,
-            body: JSON.stringify({
-                scores: {
-                    sleepSchedule: prefs.scores.sleepSchedule,
-                    cleanliness: prefs.scores.cleanliness,
-                    noiseTolerance: prefs.scores.noiseTolerance,
-                    guestsFrequency: prefs.scores.guestsFrequency,
-                    pets: prefs.dealbreakers.pets,
-                    cookingHabits: prefs.scores.cookingHabits,
-                    timeAtHome: prefs.scores.timeAtHome,
-                    temperaturePref: prefs.scores.temperaturePref,
-                    gymInterest: prefs.scores.gymInterest,
-                    mediaInterest: prefs.scores.mediaInterest
-                },
-                dealbreakers: prefs.dealbreakers
-            })
+            body: JSON.stringify(prefs.dealbreakers)
         });
-        if (!prefRes.ok) {
-            const errData = await prefRes.json().catch(() => ({}));
-            throw new Error(errData.error || 'Failed to save preferences');
-        }
-
-        const interestsRes = await fetch('/api/interests', {
-            method: 'POST',
-            headers,
-            body: JSON.stringify({
-                hobbies: prefs.personal.hobbies,
-                major: prefs.personal.major,
-                year: prefs.personal.year,
-                personality: prefs.personal.personality
-            })
-        });
-        if (!interestsRes.ok) {
-            const errData = await interestsRes.json().catch(() => ({}));
-            throw new Error(errData.error || 'Failed to save personal interests');
+        if (!dealRes.ok) {
+            const errData = await dealRes.json().catch(() => ({}));
+            throw new Error(errData.error || 'Failed to save dealbreakers');
         }
 
         if (msg) {
@@ -203,13 +174,14 @@ function goBack() {
 }
 
 function signOut() {
+    localStorage.removeItem('roommatePrefs');
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
     if (window.Clerk?.signOut) {
         window.Clerk.signOut().then(() => {
             window.location.href = '/';
         });
     } else {
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
         window.location.href = '/';
     }
 }

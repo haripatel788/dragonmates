@@ -9,6 +9,18 @@ const migrate = async () => {
   try {
     await pool.query('CREATE EXTENSION IF NOT EXISTS pgcrypto');
 
+    // users — core accounts table
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS users (
+        id SERIAL PRIMARY KEY,
+        email TEXT UNIQUE NOT NULL,
+        clerk_id VARCHAR(255) UNIQUE,
+        password_hash TEXT,
+        created_at TIMESTAMP DEFAULT NOW()
+      )
+    `);
+    console.log('  users ✓');
+
     // dealbreakers — one row per user
     await pool.query(`
       CREATE TABLE IF NOT EXISTS "dealbreakers" (
