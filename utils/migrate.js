@@ -1,46 +1,19 @@
 const pool = require('./db');
 
-// Load .env only if not using Doppler
 if (!process.env.DOPPLER_PROJECT) {
   require('dotenv').config();
 }
 
 const migrate = async () => {
-  console.log('Running schema sanity migrations...');
+  console.log('Running migrations...');
   try {
     await pool.query('CREATE EXTENSION IF NOT EXISTS pgcrypto');
 
-    // 1) livingStyles
-    await pool.query(`
-      CREATE TABLE IF NOT EXISTS "livingStyles" (
-        id SERIAL PRIMARY KEY,
-        "userId" TEXT UNIQUE,
-        "sleepSchedule" VARCHAR(50),
-        "cleanliness" VARCHAR(50),
-        "noiseLevel" VARCHAR(50),
-        "guests" VARCHAR(50),
-        "pets" VARCHAR(50),
-        "cookingHabits" VARCHAR(50),
-        "timeAtHome" VARCHAR(50),
-        "temperaturePref" VARCHAR(50),
-        "gymInterest" VARCHAR(50),
-        "mediaInterest" VARCHAR(50),
-        "createdAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        "updatedAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-      )
-    `);
-    // Add columns if they don't exist (for existing databases)
-    const newLivingCols = ['cookingHabits', 'timeAtHome', 'temperaturePref', 'gymInterest', 'mediaInterest'];
-    for (const col of newLivingCols) {
-      await pool.query(`ALTER TABLE "livingStyles" ADD COLUMN IF NOT EXISTS "${col}" VARCHAR(50)`);
-    }
-    console.log('Ensured livingStyles table');
-
-    // 1b) dealbreakers
+    // dealbreakers — one row per user
     await pool.query(`
       CREATE TABLE IF NOT EXISTS "dealbreakers" (
         id SERIAL PRIMARY KEY,
-        "userId" TEXT UNIQUE,
+        "userId" TEXT UNIQUE NOT NULL,
         "smoking" VARCHAR(50),
         "pets" VARCHAR(50),
         "budgetMin" INTEGER,
@@ -54,68 +27,49 @@ const migrate = async () => {
         "updatedAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
-    console.log('Ensured dealbreakers table');
+    console.log('  dealbreakers ✓');
 
-    // 2) interests
+    // scores — one row per user, all 1-5 lifestyle ratings
     await pool.query(`
-      CREATE TABLE IF NOT EXISTS "interests" (
+      CREATE TABLE IF NOT EXISTS "scores" (
         id SERIAL PRIMARY KEY,
-        "userId" TEXT,
-        "interest" VARCHAR(255) NOT NULL,
-        "createdAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-      )
-    `);
-    console.log('Ensured interests table');
-
-    // 3) Profile
-    await pool.query(`
-      CREATE TABLE IF NOT EXISTS "Profile" (
-        id TEXT PRIMARY KEY DEFAULT gen_random_uuid()::text,
-        "userId" TEXT UNIQUE,
-        "major" TEXT,
-        "year" TEXT,
-        "personality" TEXT,
+        "userId" TEXT UNIQUE NOT NULL,
+        "cleanliness" INTEGER,
+        "sleepSchedule" INTEGER,
+        "noiseTolerance" INTEGER,
+        "guestsFrequency" INTEGER,
+        "cookingHabits" INTEGER,
+        "timeAtHome" INTEGER,
+        "temperaturePref" INTEGER,
+        "gymInterest" INTEGER,
+        "mediaInterest" INTEGER,
         "createdAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         "updatedAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
-    console.log('Ensured Profile table');
+    console.log('  scores ✓');
 
-    // 4) roommatePairs
+    // interests — major, year, personality, hobbies (stored as comma-separated or jsonb)
     await pool.query(`
-      CREATE TABLE IF NOT EXISTS "roommatePairs" (
+      CREATE TABLE IF NOT EXISTS "interests" (
         id SERIAL PRIMARY KEY,
-        "user1Id" TEXT,
-        "user2Id" TEXT,
-        "status" VARCHAR(50) DEFAULT 'guaranteed',
-        "createdAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        "userId" TEXT UNIQUE NOT NULL,
+        "major" TEXT,
+        "year" VARCHAR(20),
+        "personality" VARCHAR(20),
+        "hobbies" TEXT[],
+        "createdAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        "updatedAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
-    console.log('Ensured roommatePairs table');
+    console.log('  interests ✓');
 
-    // 5) privateMessages
-    await pool.query(`
-      CREATE TABLE IF NOT EXISTS "privateMessages" (
-        id SERIAL PRIMARY KEY,
-        "pairId" INTEGER,
-        "senderId" TEXT,
-        "messageText" TEXT NOT NULL,
-        "createdAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-      )
-    `);
-    console.log('Ensured privateMessages table');
-
-    // Common performance indexes for workflow paths in this repo
-    await pool.query('CREATE INDEX IF NOT EXISTS "idx_user_clerkId" ON "User" ("clerkId")');
-    await pool.query('CREATE INDEX IF NOT EXISTS "idx_livingStyles_userId" ON "livingStyles" ("userId")');
+    // indexes
     await pool.query('CREATE INDEX IF NOT EXISTS "idx_dealbreakers_userId" ON "dealbreakers" ("userId")');
+    await pool.query('CREATE INDEX IF NOT EXISTS "idx_scores_userId" ON "scores" ("userId")');
     await pool.query('CREATE INDEX IF NOT EXISTS "idx_interests_userId" ON "interests" ("userId")');
-    await pool.query('CREATE INDEX IF NOT EXISTS "idx_profile_userId" ON "Profile" ("userId")');
-    await pool.query('CREATE INDEX IF NOT EXISTS "idx_roommatePairs_user1Id" ON "roommatePairs" ("user1Id")');
-    await pool.query('CREATE INDEX IF NOT EXISTS "idx_roommatePairs_user2Id" ON "roommatePairs" ("user2Id")');
-    await pool.query('CREATE INDEX IF NOT EXISTS "idx_privateMessages_pair_created" ON "privateMessages" ("pairId", "createdAt")');
 
-    console.log('Schema sanity migration completed.');
+    console.log('Migration complete.');
   } catch (err) {
     console.error('Migration failed:', err);
   } finally {
