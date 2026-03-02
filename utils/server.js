@@ -267,6 +267,25 @@ app.post('/api/interests', authenticate, requireDbUser, async (req, res) => {
   }
 });
 
+// Get full profile (dealbreakers + scores + interests) for current user
+app.get('/api/profile', authenticate, requireDbUser, async (req, res) => {
+  try {
+    const [dealRes, scoresRes, interestsRes] = await Promise.all([
+      pool.query('SELECT * FROM dealbreakers WHERE "userId" = $1 LIMIT 1', [req.userId]),
+      pool.query('SELECT * FROM scores WHERE "userId" = $1 LIMIT 1', [req.userId]),
+      pool.query('SELECT * FROM interests WHERE "userId" = $1 LIMIT 1', [req.userId])
+    ]);
+    res.json({
+      dealbreakers: dealRes.rows[0] || null,
+      scores: scoresRes.rows[0] || null,
+      interests: interestsRes.rows[0] || null
+    });
+  } catch (err) {
+    console.error('Error fetching profile:', err);
+    res.status(500).json({ error: 'Failed to fetch profile' });
+  }
+});
+
 // --- Protected routes (all below require auth) ---
 app.use(authenticate);
 app.use(requireDbUser);
