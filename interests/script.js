@@ -149,15 +149,33 @@ async function savePreferences() {
     try {
         const headers = await getAuthHeaders();
 
-        // Save dealbreakers
-        const dealRes = await fetch('/api/dealbreakers', {
-            method: 'POST',
-            headers,
-            body: JSON.stringify(prefs.dealbreakers)
-        });
+        // Save all three sections in parallel
+        const [dealRes, scoresRes, interestsRes] = await Promise.all([
+            fetch('/api/dealbreakers', {
+                method: 'POST', headers,
+                body: JSON.stringify(prefs.dealbreakers)
+            }),
+            fetch('/api/scores', {
+                method: 'POST', headers,
+                body: JSON.stringify(prefs.scores)
+            }),
+            fetch('/api/interests', {
+                method: 'POST', headers,
+                body: JSON.stringify(prefs.personal)
+            })
+        ]);
+
         if (!dealRes.ok) {
-            const errData = await dealRes.json().catch(() => ({}));
-            throw new Error(errData.error || 'Failed to save dealbreakers');
+            const err = await dealRes.json().catch(() => ({}));
+            throw new Error(err.error || 'Failed to save dealbreakers');
+        }
+        if (!scoresRes.ok) {
+            const err = await scoresRes.json().catch(() => ({}));
+            throw new Error(err.error || 'Failed to save scores');
+        }
+        if (!interestsRes.ok) {
+            const err = await interestsRes.json().catch(() => ({}));
+            throw new Error(err.error || 'Failed to save interests');
         }
 
         if (msg) {

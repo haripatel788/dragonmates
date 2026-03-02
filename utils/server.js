@@ -200,6 +200,73 @@ app.post('/api/dealbreakers', authenticate, requireDbUser, async (req, res) => {
   }
 });
 
+// Save scores (1-5 lifestyle ratings)
+app.post('/api/scores', authenticate, requireDbUser, async (req, res) => {
+  const { cleanliness, sleepSchedule, noiseTolerance, guestsFrequency,
+          cookingHabits, timeAtHome, temperaturePref, gymInterest, mediaInterest } = req.body;
+  try {
+    await pool.query(
+      `INSERT INTO scores ("userId", cleanliness, "sleepSchedule", "noiseTolerance", "guestsFrequency",
+        "cookingHabits", "timeAtHome", "temperaturePref", "gymInterest", "mediaInterest")
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+       ON CONFLICT ("userId")
+       DO UPDATE SET
+         cleanliness = EXCLUDED.cleanliness,
+         "sleepSchedule" = EXCLUDED."sleepSchedule",
+         "noiseTolerance" = EXCLUDED."noiseTolerance",
+         "guestsFrequency" = EXCLUDED."guestsFrequency",
+         "cookingHabits" = EXCLUDED."cookingHabits",
+         "timeAtHome" = EXCLUDED."timeAtHome",
+         "temperaturePref" = EXCLUDED."temperaturePref",
+         "gymInterest" = EXCLUDED."gymInterest",
+         "mediaInterest" = EXCLUDED."mediaInterest",
+         "updatedAt" = NOW()`,
+      [
+        req.userId,
+        parseInt(cleanliness, 10) || null,
+        parseInt(sleepSchedule, 10) || null,
+        parseInt(noiseTolerance, 10) || null,
+        parseInt(guestsFrequency, 10) || null,
+        parseInt(cookingHabits, 10) || null,
+        parseInt(timeAtHome, 10) || null,
+        parseInt(temperaturePref, 10) || null,
+        parseInt(gymInterest, 10) || null,
+        parseInt(mediaInterest, 10) || null
+      ]
+    );
+    res.json({ success: true });
+  } catch (err) {
+    console.error('Error saving scores:', err);
+    res.status(500).json({ error: 'Failed to save scores' });
+  }
+});
+
+// Save interests (major, year, personality, hobbies)
+app.post('/api/interests', authenticate, requireDbUser, async (req, res) => {
+  const { major, year, personality, hobbies } = req.body;
+  try {
+    const hobbiesArr = Array.isArray(hobbies)
+      ? [...new Set(hobbies.map(h => String(h).trim()).filter(Boolean))]
+      : [];
+    await pool.query(
+      `INSERT INTO interests ("userId", major, year, personality, hobbies)
+       VALUES ($1, $2, $3, $4, $5)
+       ON CONFLICT ("userId")
+       DO UPDATE SET
+         major = EXCLUDED.major,
+         year = EXCLUDED.year,
+         personality = EXCLUDED.personality,
+         hobbies = EXCLUDED.hobbies,
+         "updatedAt" = NOW()`,
+      [req.userId, major || '', year || '', personality || '', hobbiesArr]
+    );
+    res.json({ success: true });
+  } catch (err) {
+    console.error('Error saving interests:', err);
+    res.status(500).json({ error: 'Failed to save interests' });
+  }
+});
+
 // --- Protected routes (all below require auth) ---
 app.use(authenticate);
 app.use(requireDbUser);
