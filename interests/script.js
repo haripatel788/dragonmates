@@ -149,7 +149,7 @@ async function savePreferences() {
     try {
         const headers = await getAuthHeaders();
 
-        // Save living style scores
+        // Save living style scores + dealbreakers
         const prefRes = await fetch('/api/preferences', {
             method: 'POST',
             headers,
@@ -159,8 +159,14 @@ async function savePreferences() {
                     cleanliness: prefs.scores.cleanliness,
                     noiseTolerance: prefs.scores.noiseTolerance,
                     guestsFrequency: prefs.scores.guestsFrequency,
-                    pets: prefs.dealbreakers.pets
-                }
+                    pets: prefs.dealbreakers.pets,
+                    cookingHabits: prefs.scores.cookingHabits,
+                    timeAtHome: prefs.scores.timeAtHome,
+                    temperaturePref: prefs.scores.temperaturePref,
+                    gymInterest: prefs.scores.gymInterest,
+                    mediaInterest: prefs.scores.mediaInterest
+                },
+                dealbreakers: prefs.dealbreakers
             })
         });
         if (!prefRes.ok) {

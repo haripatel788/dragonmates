@@ -20,11 +20,41 @@ const migrate = async () => {
         "noiseLevel" VARCHAR(50),
         "guests" VARCHAR(50),
         "pets" VARCHAR(50),
+        "cookingHabits" VARCHAR(50),
+        "timeAtHome" VARCHAR(50),
+        "temperaturePref" VARCHAR(50),
+        "gymInterest" VARCHAR(50),
+        "mediaInterest" VARCHAR(50),
         "createdAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         "updatedAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
+    // Add columns if they don't exist (for existing databases)
+    const newLivingCols = ['cookingHabits', 'timeAtHome', 'temperaturePref', 'gymInterest', 'mediaInterest'];
+    for (const col of newLivingCols) {
+      await pool.query(`ALTER TABLE "livingStyles" ADD COLUMN IF NOT EXISTS "${col}" VARCHAR(50)`);
+    }
     console.log('Ensured livingStyles table');
+
+    // 1b) dealbreakers
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS "dealbreakers" (
+        id SERIAL PRIMARY KEY,
+        "userId" TEXT UNIQUE,
+        "smoking" VARCHAR(50),
+        "pets" VARCHAR(50),
+        "budgetMin" INTEGER,
+        "budgetMax" INTEGER,
+        "moveInDate" DATE,
+        "coopCycle" VARCHAR(50),
+        "leaseLength" INTEGER,
+        "genderPref" VARCHAR(50),
+        "roomType" VARCHAR(50),
+        "createdAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        "updatedAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+    console.log('Ensured dealbreakers table');
 
     // 2) interests
     await pool.query(`
@@ -78,6 +108,7 @@ const migrate = async () => {
     // Common performance indexes for workflow paths in this repo
     await pool.query('CREATE INDEX IF NOT EXISTS "idx_user_clerkId" ON "User" ("clerkId")');
     await pool.query('CREATE INDEX IF NOT EXISTS "idx_livingStyles_userId" ON "livingStyles" ("userId")');
+    await pool.query('CREATE INDEX IF NOT EXISTS "idx_dealbreakers_userId" ON "dealbreakers" ("userId")');
     await pool.query('CREATE INDEX IF NOT EXISTS "idx_interests_userId" ON "interests" ("userId")');
     await pool.query('CREATE INDEX IF NOT EXISTS "idx_profile_userId" ON "Profile" ("userId")');
     await pool.query('CREATE INDEX IF NOT EXISTS "idx_roommatePairs_user1Id" ON "roommatePairs" ("user1Id")');

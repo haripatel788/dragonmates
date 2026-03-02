@@ -180,23 +180,68 @@ app.post('/api/clerk-user', authenticate, async (req, res) => {
   }
 });
 
-// Save lifestyle scores to livingStyles table
+// Save lifestyle scores to livingStyles table and dealbreakers
 app.post('/api/preferences', authenticate, requireDbUser, async (req, res) => {
-  const { scores } = req.body;
+  const { scores, dealbreakers } = req.body;
   if (!scores) return res.status(400).json({ error: 'scores are required' });
 
   try {
     const userId = req.userId;
 
+    await pool.query('BEGIN');
+
+    // Save all lifestyle scores
     await pool.query('DELETE FROM "livingStyles" WHERE "userId" = $1', [userId]);
     await pool.query(
-      `INSERT INTO "livingStyles" ("userId", "sleepSchedule", "cleanliness", "noiseLevel", "guests", "pets")
-       VALUES ($1, $2, $3, $4, $5, $6)`,
-      [userId, scores.sleepSchedule, scores.cleanliness, scores.noiseTolerance, scores.guestsFrequency, scores.pets || '']
+      `INSERT INTO "livingStyles" ("userId", "sleepSchedule", "cleanliness", "noiseLevel", "guests", "pets",
+        "cookingHabits", "timeAtHome", "temperaturePref", "gymInterest", "mediaInterest")
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`,
+      [
+        userId,
+        scores.sleepSchedule, scores.cleanliness, scores.noiseTolerance,
+        scores.guestsFrequency, scores.pets || '',
+        scores.cookingHabits, scores.timeAtHome, scores.temperaturePref,
+        scores.gymInterest, scores.mediaInterest
+      ]
     );
 
+    // Save dealbreakers if provided
+    if (dealbreakers) {
+      await pool.query(
+        `INSERT INTO "dealbreakers" ("userId", "smoking", "pets", "budgetMin", "budgetMax",
+          "moveInDate", "coopCycle", "leaseLength", "genderPref", "roomType")
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+         ON CONFLICT ("userId")
+         DO UPDATE SET
+           "smoking" = EXCLUDED."smoking",
+           "pets" = EXCLUDED."pets",
+           "budgetMin" = EXCLUDED."budgetMin",
+           "budgetMax" = EXCLUDED."budgetMax",
+           "moveInDate" = EXCLUDED."moveInDate",
+           "coopCycle" = EXCLUDED."coopCycle",
+           "leaseLength" = EXCLUDED."leaseLength",
+           "genderPref" = EXCLUDED."genderPref",
+           "roomType" = EXCLUDED."roomType",
+           "updatedAt" = NOW()`,
+        [
+          userId,
+          dealbreakers.smoking || '',
+          dealbreakers.pets || '',
+          dealbreakers.budgetMin ? parseInt(dealbreakers.budgetMin, 10) : null,
+          dealbreakers.budgetMax ? parseInt(dealbreakers.budgetMax, 10) : null,
+          dealbreakers.moveInDate || null,
+          dealbreakers.coopCycle || '',
+          dealbreakers.leaseLength ? parseInt(dealbreakers.leaseLength, 10) : null,
+          dealbreakers.genderPref || '',
+          dealbreakers.roomType || ''
+        ]
+      );
+    }
+
+    await pool.query('COMMIT');
     res.json({ success: true });
   } catch (err) {
+    try { await pool.query('ROLLBACK'); } catch (_) {}
     console.error('Error saving preferences:', err);
     res.status(500).json({ error: 'Failed to save preferences' });
   }
