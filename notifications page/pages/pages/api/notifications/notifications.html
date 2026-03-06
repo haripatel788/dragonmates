@@ -4,7 +4,8 @@
   <meta charset="UTF-8">
   <title>Notifications</title>
 </head>
-<body>
+<!-- FIX 1: userId injected server-side via data attribute -->
+<body data-user-id="{{SIGNED_IN_USER_ID}}">
   <h1>Notifications</h1>
   <ul id="notificationsList">
     <li>Loading notifications...</li>
@@ -13,14 +14,13 @@
   <script>
     const notificationsList = document.getElementById("notificationsList");
 
-    // Replace with the signed-in user's ID
-    const userId = "SIGNED_IN_USER_ID";
+    // FIX 1: Read userId from the data attribute instead of a hardcoded placeholder
+    const userId = document.body.dataset.userId;
 
     async function loadNotifications() {
       notificationsList.innerHTML = "<li>Loading notifications...</li>";
 
       try {
-        // Call your backend GET endpoint
         const response = await fetch(`/api/notifications?userId=${userId}`);
         const data = await response.json();
 
@@ -35,18 +35,26 @@
           const li = document.createElement("li");
           li.textContent = notif.message;
 
-          // Add "Mark as read" button if unread
           if (!notif.read) {
             const button = document.createElement("button");
             button.textContent = "Mark as read";
             button.onclick = async () => {
-              await fetch(`/api/notifications/read`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ notificationId: notif.id }),
-              });
-              li.textContent = notif.message + " (read)";
-              button.remove();
+              try {
+                // FIX 3: Handle fetch failure instead of silently ignoring it
+                const res = await fetch(`/api/notifications/read`, {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ notificationId: notif.id }),
+                });
+                if (!res.ok) throw new Error("Failed to mark as read");
+
+                // FIX 2: Remove button BEFORE setting textContent, 
+                // otherwise textContent wipes the button and button.remove() throws
+                button.remove();
+                li.textContent = notif.message + " (read)";
+              } catch (err) {
+                console.error("Could not mark notification as read:", err);
+              }
             };
             li.appendChild(button);
           }
