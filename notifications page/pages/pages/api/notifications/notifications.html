@@ -4,7 +4,6 @@
   <meta charset="UTF-8">
   <title>Notifications</title>
 </head>
-<!-- FIX 1: userId injected server-side via data attribute -->
 <body data-user-id="{{SIGNED_IN_USER_ID}}">
   <h1>Notifications</h1>
   <ul id="notificationsList">
@@ -14,7 +13,6 @@
   <script>
     const notificationsList = document.getElementById("notificationsList");
 
-    // FIX 1: Read userId from the data attribute instead of a hardcoded placeholder
     const userId = document.body.dataset.userId;
 
     async function loadNotifications() {
@@ -40,7 +38,6 @@
             button.textContent = "Mark as read";
             button.onclick = async () => {
               try {
-                // FIX 3: Handle fetch failure instead of silently ignoring it
                 const res = await fetch(`/api/notifications/read`, {
                   method: "POST",
                   headers: { "Content-Type": "application/json" },
@@ -48,8 +45,7 @@
                 });
                 if (!res.ok) throw new Error("Failed to mark as read");
 
-                // FIX 2: Remove button BEFORE setting textContent, 
-                // otherwise textContent wipes the button and button.remove() throws
+                
                 button.remove();
                 li.textContent = notif.message + " (read)";
               } catch (err) {
