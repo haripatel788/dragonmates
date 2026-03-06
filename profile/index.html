@@ -248,12 +248,6 @@
             mediaInterest: ['', 'None', 'Low', 'Moderate', 'High', 'Very high']
         };
 
-        function getPrefs() {
-            try {
-                return JSON.parse(localStorage.getItem('roommatePrefs') || '{}');
-            } catch { return {}; }
-        }
-
         function setText(id, text) {
             const el = document.getElementById(id);
             if (el) el.textContent = text || '—';
@@ -271,16 +265,47 @@
             return arr[parseInt(val, 10)] || val;
         }
 
-        function loadProfileFromPrefs() {
-            const prefs = getPrefs();
+        function cap(s) { return s ? s.charAt(0).toUpperCase() + s.slice(1) : ''; }
 
-            // Header: major, year
-            const p = prefs.personal || {};
-            setText('profileMajor', p.major || '');
-            setText('profileYear', p.year ? p.year.charAt(0).toUpperCase() + p.year.slice(1) : '');
+        async function getAuthHeaders() {
+            let token = null;
+            try { token = await window.Clerk?.session?.getToken(); } catch (_) {}
+            if (!token) token = localStorage.getItem('token');
+            if (!token || token === 'null' || token === 'undefined') return null;
+            return { 'Authorization': `Bearer ${token}` };
+        }
+
+        async function loadProfile() {
+            // Set name from Clerk
+            const user = window.Clerk?.user;
+            if (user) {
+                const name = [user.firstName, user.lastName].filter(Boolean).join(' ');
+                setText('profileName', name || user.primaryEmailAddress?.emailAddress || 'Student');
+                if (user.imageUrl) {
+                    document.getElementById('profileImage').src = user.imageUrl;
+                }
+            }
+
+            // Fetch profile data from DB
+            const headers = await getAuthHeaders();
+            if (!headers) return;
+
+            let data;
+            try {
+                const res = await fetch('/api/profile', { headers });
+                if (!res.ok) return;
+                data = await res.json();
+            } catch (_) { return; }
+
+            const scores = data.scores || {};
+            const db = data.dealbreakers || {};
+            const interests = data.interests || {};
+
+            // Header info
+            setText('profileMajor', interests.major || '');
+            setText('profileYear', cap(interests.year));
 
             // Lifestyle scores
-            const scores = prefs.scores || {};
             setText('sleepSchedule', SCORE_LABELS.sleepSchedule[scores.sleepSchedule]);
             setText('noiseLevel', SCORE_LABELS.noiseTolerance[scores.noiseTolerance]);
             setText('cleanliness', SCORE_LABELS.cleanliness[scores.cleanliness]);
@@ -288,37 +313,31 @@
             setText('cookingHabits', SCORE_LABELS.cookingHabits[scores.cookingHabits]);
             setText('timeAtHome', SCORE_LABELS.timeAtHome[scores.timeAtHome]);
             setText('temperaturePref', SCORE_LABELS.temperaturePref[scores.temperaturePref]);
-            setText('personality', p.personality ? p.personality.charAt(0).toUpperCase() + p.personality.slice(1) : '');
+            setText('personality', cap(interests.personality));
             setText('gymInterest', SCORE_LABELS.gymInterest[scores.gymInterest]);
             setText('mediaInterest', SCORE_LABELS.mediaInterest[scores.mediaInterest]);
 
-            // Interests & Hobbies
-            const hobbies = p.hobbies || [];
+            // Hobbies
+            const hobbies = interests.hobbies || [];
             const container = document.getElementById('interestsContainer');
             const emptyHint = document.getElementById('interestsEmpty');
-            if (container) {
-                if (hobbies.length > 0) {
-                    if (emptyHint) emptyHint.remove();
-                    container.innerHTML = hobbies.map(h => {
-                        const label = h.charAt(0).toUpperCase() + h.slice(1);
-                        const emoji = HOBBY_EMOJI[h] || '•';
-                        return `<span class="px-5 py-2.5 bg-gradient-to-br from-drexel-blue to-drexel-light-blue text-white rounded-full font-medium">${emoji} ${label}</span>`;
-                    }).join('');
-                } else if (emptyHint) {
-                    emptyHint.classList.remove('hidden');
-                }
+            if (container && hobbies.length > 0) {
+                if (emptyHint) emptyHint.remove();
+                container.innerHTML = hobbies.map(h => {
+                    const emoji = HOBBY_EMOJI[h] || '';
+                    return `<span class="px-5 py-2.5 bg-gradient-to-br from-drexel-blue to-drexel-light-blue text-white rounded-full font-medium">${emoji} ${cap(h)}</span>`;
+                }).join('');
             }
 
-            // Housing & Dealbreakers
-            const db = prefs.dealbreakers || {};
-            const budgetMin = db.budgetMin, budgetMax = db.budgetMax;
-            setText('budget', (budgetMin || budgetMax) ? `$${budgetMin || '?'} - $${budgetMax || '?'}/month` : '');
+            // Dealbreakers
+            setText('budget', (db.budgetMin || db.budgetMax) ? `$${db.budgetMin || '?'} - $${db.budgetMax || '?'}/month` : '');
             setText('moveInDate', formatDate(db.moveInDate));
             setText('leaseDuration', db.leaseLength ? `${db.leaseLength} months` : '');
-            setText('coopCycle', db.coopCycle ? db.coopCycle.replace('-', '–') : '');
-            setText('roomType', db.roomType ? db.roomType.charAt(0).toUpperCase() + db.roomType.slice(1) : '');
-            setText('smoking', db.smoking ? (db.smoking === 'outside' ? 'Outside only' : db.smoking.charAt(0).toUpperCase() + db.smoking.slice(1)) : '');
-            setText('pets', db.pets ? (db.pets === 'have' ? 'Have pets' : db.pets === 'okay' ? 'Okay with pets' : db.pets === 'not-okay' ? 'Not okay with pets' : db.pets) : '');
+            setText('coopCycle', db.coopCycle ? db.coopCycle.replace('-', '\u2013') : '');
+            setText('roomType', cap(db.roomType));
+            setText('smoking', db.smoking === 'outside' ? 'Outside only' : cap(db.smoking));
+            const petsMap = { have: 'Have pets', okay: 'Okay with pets', 'not-okay': 'Not okay with pets' };
+            setText('pets', petsMap[db.pets] || cap(db.pets));
         }
 
         window.addEventListener('load', async () => {
@@ -330,17 +349,18 @@
                 window.location.href = '/auth/login';
                 return;
             }
-            loadProfileFromPrefs();
+            loadProfile();
         });
 
         function goBack() { window.history.back(); }
 
         function signOut() {
+            localStorage.removeItem('roommatePrefs');
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
             if (window.Clerk?.signOut) {
                 window.Clerk.signOut().then(() => { window.location.href = '/'; });
             } else {
-                localStorage.removeItem('token');
-                localStorage.removeItem('user');
                 window.location.href = '/';
             }
         }
