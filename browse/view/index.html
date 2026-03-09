@@ -163,15 +163,22 @@
                     </div>
                 </div>
 
-                <div class="p-8">
+                <div class="p-8 grid grid-cols-1 md:grid-cols-2 gap-4">
                     <button onclick="sendMessage()" class="w-full flex items-center justify-center gap-2 px-6 py-4 bg-gradient-to-br from-drexel-blue to-drexel-light-blue text-white font-semibold rounded-xl shadow-md hover:-translate-y-0.5 hover:shadow-lg transition-all">
                         <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
                             <path d="M18 2L9 11M18 2L12 18L9 11M18 2L2 8L9 11" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                         </svg>
                         Send Message
                     </button>
+                    <button id="likeButton" onclick="toggleLike('${id}')" class="w-full flex items-center justify-center gap-2 px-6 py-4 bg-white text-drexel-blue font-semibold rounded-xl border-2 border-drexel-blue hover:bg-drexel-blue hover:text-white transition-all">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                        </svg>
+                        <span>Like</span>
+                    </button>
                 </div>
             `;
+            updateLikeButton(id);
         }
 
         function sendMessage() {
@@ -224,6 +231,51 @@
         }
 
         renderProfile();
+
+        function getLikedProfiles() {
+            try {
+                return JSON.parse(localStorage.getItem('likedProfiles') || '[]');
+            } catch {
+                return [];
+            }
+        }
+
+        function setLikedProfiles(list) {
+            localStorage.setItem('likedProfiles', JSON.stringify(list));
+        }
+
+        function isProfileLiked(id) {
+            return getLikedProfiles().includes(id);
+        }
+
+        function updateLikeButton(id) {
+            const btn = document.getElementById('likeButton');
+            if (!btn) return;
+            const liked = isProfileLiked(id);
+            btn.classList.toggle('bg-red-500', liked);
+            btn.classList.toggle('border-red-500', liked);
+            btn.classList.toggle('text-white', liked);
+            btn.classList.toggle('hover:bg-red-600', liked);
+            btn.classList.toggle('bg-white', !liked);
+            btn.classList.toggle('border-drexel-blue', !liked);
+            btn.classList.toggle('text-drexel-blue', !liked);
+            btn.classList.toggle('hover:bg-drexel-blue', !liked);
+
+            const icon = liked
+                ? `<svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M10 18s-6-4.35-6-9.33C4 5.8 6.24 4 8.5 4 10 4 11 4.9 11 4.9S12 4 13.5 4C15.76 4 18 5.8 18 8.67 18 13.65 10 18 10 18z"/></svg>`
+                : `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>`;
+
+            const label = liked ? 'Liked' : 'Like';
+            btn.innerHTML = `${icon}<span>${label}</span>`;
+        }
+
+        function toggleLike(id) {
+            const likes = getLikedProfiles();
+            const isLiked = likes.includes(id);
+            const next = isLiked ? likes.filter(x => x !== id) : [...likes, id];
+            setLikedProfiles(next);
+            updateLikeButton(id);
+        }
     </script>
 </body>
 </html>
