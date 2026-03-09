@@ -139,12 +139,25 @@ app.post('/auth/login', async (req, res) => {
   res.json({ token: sign(user.id), user: { id: user.id, email: user.email } });
 });
 
-// Sync Clerk user to DB
+// Sync clerk user with NeonDB
 app.post('/api/clerk-user', authenticate, async (req, res) => {
+
+  // Extract Clerk user ID and email from the request body
   const { clerkId, email } = req.body;
-  if (!clerkId || !email) return res.status(400).json({ error: 'clerkId and email are required' });
-  if (req.clerkId && req.clerkId !== clerkId) return res.status(403).json({ error: 'Token/user mismatch' });
+
+  // If either clerkId or email is missing, return a 400 Bad Request
+  if (!clerkId || !email) {
+    return res.status(400).json({ error: 'clerkId and email are required' });
+  }
+
+  // Ensure the authenticated token's clerkId matches the clerkId being sent
+  if (req.clerkId && req.clerkId !== clerkId) {
+    return res.status(403).json({ error: 'Token/user mismatch' });
+  }
+
   try {
+
+    // Insert the user into the database
     const { rows } = await pool.query(
       `INSERT INTO users (clerk_id, email)
        VALUES ($1, $2)
@@ -153,9 +166,16 @@ app.post('/api/clerk-user', authenticate, async (req, res) => {
        RETURNING id, clerk_id, email`,
       [clerkId, email]
     );
+
+    // Return the created or updated user record
     res.json({ user: rows[0] });
+
   } catch (err) {
+
+    // write error to console
     console.error('Error creating clerk user:', err);
+
+    // Return error response
     res.status(500).json({ error: 'Failed to create user' });
   }
 });
