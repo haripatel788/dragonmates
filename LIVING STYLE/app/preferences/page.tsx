@@ -38,3 +38,4 @@ export default function PreferencesPage() {}
     setMatchScore(Math.floor(Math.random() * 40) + 60);
     setSaveMsg("");
   }
+  
