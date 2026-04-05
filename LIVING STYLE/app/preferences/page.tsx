@@ -165,3 +165,30 @@ export default function PreferencesPage() {}
             </div>
           )}
         </div>
+        {/* Saved Profile Card */}
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+          <div className="bg-[#07294d] px-6 py-4">
+            <h2 className="text-white font-semibold text-lg">Your Saved Profile</h2>
+          </div>
+          <div className="p-6">
+            {savedProfile ? (
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                {[
+                  { label: "Sleep", value: savedProfile.sleepSchedule },
+                  { label: "Cleanliness", value: savedProfile.cleanliness },
+                  { label: "Noise", value: savedProfile.noise },
+                  { label: "Guests", value: savedProfile.guests },
+                  { label: "Pets", value: savedProfile.pets },
+                  { label: "Interests", value: savedProfile.interests },
+                ].map(({ label, value }) => (
+                  <div key={label} className="bg-gray-50 rounded-lg p-3 border border-gray-100">
+                    <p className="text-xs font-semibold text-gray-800 uppercase tracking-wider mb-1">{label}</p>
+                    <p className="text-sm text-gray-700 capitalize">{value || "—"}</p>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-gray-400 text-sm">No profile saved yet. Fill out the form and hit Save.</p>
+            )}
+          </div>
+        </div>
