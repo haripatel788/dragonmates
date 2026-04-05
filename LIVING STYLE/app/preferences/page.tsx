@@ -192,3 +192,29 @@ export default function PreferencesPage() {}
             )}
           </div>
         </div>
+        {/* Match Score Card */}
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+          <div className="bg-[#07294d] px-6 py-4">
+            <h2 className="text-white font-semibold text-lg">Matching Result</h2>
+          </div>
+          <div className="p-6">
+            {matchScore !== null ? (
+              <div className="flex items-center gap-4">
+                <div className="w-16 h-16 rounded-full bg-[#ffc600] flex items-center justify-center shadow">
+                  <span className="text-[#07294d] font-bold text-lg">{matchScore}%</span>
+                </div>
+                <div>
+                  <p className="text-gray-700 font-semibold">Compatibility Score</p>
+                  <p className="text-gray-400 text-sm">Stub example — real matching coming soon</p>
+                </div>
+              </div>
+            ) : (
+              <p className="text-gray-400 text-sm">Load your saved preferences to see your match score.</p>
+            )}
+          </div>
+        </div>
+
+      </div>
+    </div>
+  );
+}
