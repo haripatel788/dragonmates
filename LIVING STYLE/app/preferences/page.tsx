@@ -9,7 +9,7 @@ const defaultPrefs = {
   pets: "",
   interests: "",
 };
-export default function PreferencesPage() {}
+export default function PreferencesPage() {
   const [prefs, setPrefs] = useState({ ...defaultPrefs });
   const [savedProfile, setSavedProfile] = useState<null | typeof defaultPrefs>(null);
   const [matchScore, setMatchScore] = useState<number | null>(null);
