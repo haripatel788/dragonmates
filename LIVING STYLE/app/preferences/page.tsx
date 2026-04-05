@@ -90,3 +90,14 @@ export default function PreferencesPage() {}
       ],
     },
   ];
+  return (
+    <div className="min-h-screen bg-[#f5f6fa] font-sans">
+
+      {/* Header */}
+      <div className="bg-[#07294d] px-8 py-5 flex items-center justify-between shadow-md">
+        <div>
+          <h1 className="text-2xl font-bold text-[#ffc600] tracking-wide">Dragonmates</h1>
+          <p className="text-blue-200 text-sm mt-0.5">Find your perfect roommate match</p>
+        </div>
+        <span className="text-blue-300 text-sm font-medium">Living Style & Preferences</span>
+      </div>
