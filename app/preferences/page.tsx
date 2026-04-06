@@ -11,11 +11,15 @@ const defaultPrefs = {
 };
 export default function PreferencesPage() {
   const [prefs, setPrefs] = useState({ ...defaultPrefs });
-  const [savedProfile, setSavedProfile] = useState<null | typeof defaultPrefs>(null);
+  const [savedProfile, setSavedProfile] = useState<null | typeof defaultPrefs>(
+    null,
+  );
   const [matchScore, setMatchScore] = useState<number | null>(null);
   const [saveMsg, setSaveMsg] = useState("");
 
-  function handleChange(e: React.ChangeEvent<HTMLSelectElement | HTMLInputElement>) {
+  function handleChange(
+    e: React.ChangeEvent<HTMLSelectElement | HTMLInputElement>,
+  ) {
     setPrefs({ ...prefs, [e.target.name]: e.target.value });
   }
 
@@ -92,22 +96,30 @@ export default function PreferencesPage() {
   ];
   return (
     <div className="min-h-screen bg-[#f5f6fa] font-sans">
-
       {/* Header */}
       <div className="bg-[#07294d] px-8 py-5 flex items-center justify-between shadow-md">
         <div>
-          <h1 className="text-2xl font-bold text-[#ffc600] tracking-wide">Dragonmates</h1>
-          <p className="text-blue-200 text-sm mt-0.5">Find your perfect roommate match</p>
+          <h1 className="text-2xl font-bold text-[#ffc600] tracking-wide">
+            Dragonmates
+          </h1>
+          <p className="text-blue-200 text-sm mt-0.5">
+            Find your perfect roommate match
+          </p>
         </div>
-        <span className="text-blue-300 text-sm font-medium">Living Style & Preferences</span>
+        <span className="text-blue-300 text-sm font-medium">
+          Living Style & Preferences
+        </span>
       </div>
       <div className="max-w-2xl mx-auto px-6 py-10 space-y-8">
-
         {/* Form Card */}
         <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
           <div className="bg-[#07294d] px-6 py-4">
-            <h2 className="text-white font-semibold text-lg">Your Living Preferences</h2>
-            <p className="text-blue-300 text-sm">Tell us how you like to live</p>
+            <h2 className="text-white font-semibold text-lg">
+              Your Living Preferences
+            </h2>
+            <p className="text-blue-300 text-sm">
+              Tell us how you like to live
+            </p>
           </div>
 
           <div className="p-6 grid grid-cols-1 sm:grid-cols-2 gap-5">
@@ -120,10 +132,11 @@ export default function PreferencesPage() {
                   name={name}
                   value={prefs[name as keyof typeof prefs]}
                   onChange={handleChange}
-                  className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-700 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#ffc600] focus:border-transparent transition"
-                >
+                  className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm text-gray-700 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#ffc600] focus:border-transparent transition">
                   {options.map((o) => (
-                    <option key={o.value} value={o.value}>{o.label}</option>
+                    <option key={o.value} value={o.value}>
+                      {o.label}
+                    </option>
                   ))}
                 </select>
               </div>
@@ -147,14 +160,12 @@ export default function PreferencesPage() {
           <div className="px-6 pb-6 flex gap-3">
             <button
               onClick={savePreferences}
-              className="flex-1 bg-[#07294d] hover:bg-[#0a3a6e] text-white text-sm font-semibold py-2.5 rounded-lg transition shadow-sm"
-            >
+              className="flex-1 bg-[#07294d] hover:bg-[#0a3a6e] text-white text-sm font-semibold py-2.5 rounded-lg transition shadow-sm">
               Save Preferences
             </button>
             <button
               onClick={loadPreferences}
-              className="flex-1 bg-[#ffc600] hover:bg-[#e6b200] text-[#07294d] text-sm font-semibold py-2.5 rounded-lg transition shadow-sm"
-            >
+              className="flex-1 bg-[#ffc600] hover:bg-[#e6b200] text-[#07294d] text-sm font-semibold py-2.5 rounded-lg transition shadow-sm">
               Load Saved
             </button>
           </div>
@@ -168,7 +179,9 @@ export default function PreferencesPage() {
         {/* Saved Profile Card */}
         <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
           <div className="bg-[#07294d] px-6 py-4">
-            <h2 className="text-white font-semibold text-lg">Your Saved Profile</h2>
+            <h2 className="text-white font-semibold text-lg">
+              Your Saved Profile
+            </h2>
           </div>
           <div className="p-6">
             {savedProfile ? (
@@ -181,39 +194,56 @@ export default function PreferencesPage() {
                   { label: "Pets", value: savedProfile.pets },
                   { label: "Interests", value: savedProfile.interests },
                 ].map(({ label, value }) => (
-                  <div key={label} className="bg-gray-50 rounded-lg p-3 border border-gray-100">
-                    <p className="text-xs font-semibold text-gray-800 uppercase tracking-wider mb-1">{label}</p>
-                    <p className="text-sm text-gray-700 capitalize">{value || "—"}</p>
+                  <div
+                    key={label}
+                    className="bg-gray-50 rounded-lg p-3 border border-gray-100">
+                    <p className="text-xs font-semibold text-gray-800 uppercase tracking-wider mb-1">
+                      {label}
+                    </p>
+                    <p className="text-sm text-gray-700 capitalize">
+                      {value || "—"}
+                    </p>
                   </div>
                 ))}
               </div>
             ) : (
-              <p className="text-gray-400 text-sm">No profile saved yet. Fill out the form and hit Save.</p>
+              <p className="text-gray-400 text-sm">
+                No profile saved yet. Fill out the form and hit Save.
+              </p>
             )}
           </div>
         </div>
         {/* Match Score Card */}
         <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
           <div className="bg-[#07294d] px-6 py-4">
-            <h2 className="text-white font-semibold text-lg">Matching Result</h2>
+            <h2 className="text-white font-semibold text-lg">
+              Matching Result
+            </h2>
           </div>
           <div className="p-6">
             {matchScore !== null ? (
               <div className="flex items-center gap-4">
                 <div className="w-16 h-16 rounded-full bg-[#ffc600] flex items-center justify-center shadow">
-                  <span className="text-[#07294d] font-bold text-lg">{matchScore}%</span>
+                  <span className="text-[#07294d] font-bold text-lg">
+                    {matchScore}%
+                  </span>
                 </div>
                 <div>
-                  <p className="text-gray-700 font-semibold">Compatibility Score</p>
-                  <p className="text-gray-400 text-sm">Stub example — real matching coming soon</p>
+                  <p className="text-gray-700 font-semibold">
+                    Compatibility Score
+                  </p>
+                  <p className="text-gray-400 text-sm">
+                    Stub example — real matching coming soon
+                  </p>
                 </div>
               </div>
             ) : (
-              <p className="text-gray-400 text-sm">Load your saved preferences to see your match score.</p>
+              <p className="text-gray-400 text-sm">
+                Load your saved preferences to see your match score.
+              </p>
             )}
           </div>
         </div>
-
       </div>
     </div>
   );
