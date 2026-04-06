@@ -133,102 +133,6 @@ const MOCK_PROFILES: Profile[] = [
       },
     ],
   },
-  {
-    id: "4",
-    email: "taylor.brown@university.edu",
-    first_name: "Taylor",
-    last_name: "Brown",
-    home_town: "Chicago",
-    home_state: "Illinois",
-    avatar_url: "TB",
-    academics: [
-      {
-        academic_year: "Senior",
-        major: "Psychology",
-        minor: "",
-        gpa: 3.5,
-      },
-    ],
-    living_style: [
-      {
-        time_sleep: "22:30",
-        time_wake: "07:30",
-        comfortable_temp: 68,
-        noise_level: 2,
-        cleanliness: 4,
-        music_genre: ["Classical", "Jazz", "Country"],
-      },
-    ],
-    interests: [
-      {
-        interests: ["Reading", "Volunteering", "Music"],
-      },
-    ],
-  },
-  {
-    id: "5",
-    email: "morgan.davis@university.edu",
-    first_name: "Morgan",
-    last_name: "Davis",
-    home_town: "Seattle",
-    home_state: "Washington",
-    avatar_url: "MD",
-    academics: [
-      {
-        academic_year: "Junior",
-        major: "Software Engineering",
-        minor: "Physics",
-        gpa: 3.9,
-      },
-    ],
-    living_style: [
-      {
-        time_sleep: "23:00",
-        time_wake: "07:00",
-        comfortable_temp: 69,
-        noise_level: 3,
-        cleanliness: 4,
-        music_genre: ["Electronic", "Lo-fi", "Hip-Hop"],
-      },
-    ],
-    interests: [
-      {
-        interests: ["Coding", "Esports", "Gym / Fitness"],
-      },
-    ],
-  },
-  {
-    id: "6",
-    email: "casey.wilson@university.edu",
-    first_name: "Casey",
-    last_name: "Wilson",
-    home_town: "Austin",
-    home_state: "Texas",
-    avatar_url: "CW",
-    academics: [
-      {
-        academic_year: "Sophomore",
-        major: "Music",
-        minor: "Art",
-        gpa: 3.4,
-      },
-    ],
-    living_style: [
-      {
-        time_sleep: "23:30",
-        time_wake: "08:00",
-        comfortable_temp: 74,
-        noise_level: 5,
-        cleanliness: 2,
-        music_genre: ["Rock", "Indie", "Country"],
-      },
-    ],
-    interests: [
-      {
-        interests: ["Music", "Art", "Dancing"],
-      },
-    ],
-  },
 ];
 
 const INTEREST_OPTIONS = [
@@ -261,76 +165,53 @@ export default function ExplorePage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 p-8">
-      <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="mb-12">
-          <h1 className="text-5xl font-bold text-white mb-2">Find Your Dragon Mate</h1>
-          <p className="text-blue-300 text-lg">Discover compatible roommates and build lasting connections</p>
+    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-blue-950 to-slate-900 px-6 py-10">
+      <div className="mx-auto max-w-6xl">
+        <div className="mb-10">
+          <div className="inline-flex items-center gap-2 rounded-full border border-amber-400/20 bg-amber-400/10 px-4 py-2 text-sm font-semibold text-amber-200">
+            <span className="h-2.5 w-2.5 rounded-full bg-amber-300" />
+            DragonMates roommate preview
+          </div>
+          <h1 className="mt-6 text-5xl font-semibold tracking-tight text-white">Browse verified campus roommates</h1>
+          <p className="mt-4 max-w-2xl text-lg text-slate-300">
+            Compare student profiles, shared routines, and lifestyle preferences to find the best match for your next housing term.
+          </p>
         </div>
 
         {MOCK_PROFILES.length === 0 ? (
-          <div className="text-center py-12">
-            <p className="text-blue-300 text-lg">No profiles available yet</p>
+          <div className="rounded-3xl border border-blue-800 bg-slate-900/80 p-10 text-center text-blue-200">
+            No roommate profiles are available at the moment.
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid gap-6 lg:grid-cols-3">
             {MOCK_PROFILES.map((profile) => (
               <div
                 key={profile.id}
-                className="bg-gradient-to-br from-slate-800 to-slate-900 rounded-xl shadow-lg hover:shadow-2xl hover:scale-105 transition-all overflow-hidden border border-amber-500/30"
+                className="rounded-[28px] border border-blue-700/40 bg-slate-900/95 p-6 shadow-[0_24px_80px_-32px_rgba(15,23,42,0.9)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_30px_90px_-30px_rgba(15,23,42,0.9)]"
               >
-                {/* Profile Avatar Header */}
-                <div className={`h-32 bg-gradient-to-br ${getAvatarColor(profile.id)} flex items-center justify-center`}>
-                  <div className="w-24 h-24 rounded-full bg-white/20 flex items-center justify-center border-2 border-white/40">
-                    <span className="text-4xl font-bold text-white">{profile.avatar_url}</span>
-                  </div>
+                <div className="mb-6 flex h-24 w-24 items-center justify-center rounded-full bg-gradient-to-br from-blue-600 to-cyan-500 text-white shadow-lg shadow-blue-950/40">
+                  <span className="text-3xl font-semibold">{profile.avatar_url}</span>
                 </div>
 
-                {/* Profile Info */}
-                <div className="p-5">
-                  <h2 className="text-xl font-bold text-white">
-                    {profile.first_name} {profile.last_name}
-                  </h2>
+                <h2 className="text-2xl font-semibold text-white">{profile.first_name} {profile.last_name}</h2>
+                <p className="mt-2 text-sm text-slate-400">{profile.home_town}, {profile.home_state}</p>
 
-                  <div className="mt-2 text-sm text-blue-300">
-                    {profile.home_town && profile.home_state && (
-                      <p>📍 {profile.home_town}, {profile.home_state}</p>
-                    )}
+                <div className="mt-6 rounded-3xl border border-blue-700/30 bg-slate-950/70 p-4">
+                  <p className="text-xs uppercase tracking-[0.18em] text-amber-300">Academic snapshot</p>
+                  <p className="mt-3 text-sm text-white">{profile.academics[0].academic_year} · {profile.academics[0].major}</p>
+                  {profile.academics[0].minor && <p className="mt-2 text-sm text-slate-400">Minor: {profile.academics[0].minor}</p>}
+                  <p className="mt-2 text-sm text-slate-400">GPA {profile.academics[0].gpa.toFixed(2)}</p>
+                </div>
+
+                <div className="mt-6 grid gap-2">
+                  <div className="text-xs uppercase tracking-[0.18em] text-amber-300">Shared interests</div>
+                  <div className="flex flex-wrap gap-2">
+                    {profile.interests[0].interests.map((interest) => (
+                      <span key={interest} className="rounded-full border border-blue-700/40 bg-blue-950/70 px-3 py-1 text-sm text-slate-200">
+                        {getInterestEmoji(interest)} {interest}
+                      </span>
+                    ))}
                   </div>
-
-                  {/* Academics */}
-                  {profile.academics && profile.academics[0] && (
-                    <div className="mt-3 pt-3 border-t border-slate-700">
-                      <p className="text-sm font-semibold text-amber-300">
-                        {profile.academics[0].academic_year}
-                      </p>
-                      <p className="text-sm text-slate-400">{profile.academics[0].major}</p>
-                    </div>
-                  )}
-
-                  {/* Interests Preview */}
-                  {profile.interests && profile.interests[0] && profile.interests[0].interests.length > 0 && (
-                    <div className="mt-3 pt-3 border-t border-slate-700">
-                      <p className="text-xs font-semibold text-amber-300 mb-2">Interests</p>
-                      <div className="flex flex-wrap gap-1">
-                        {profile.interests[0].interests.slice(0, 3).map((interest) => (
-                          <span key={interest} className="text-lg">
-                            {getInterestEmoji(interest)}
-                          </span>
-                        ))}
-                        {profile.interests[0].interests.length > 3 && (
-                          <span className="text-xs text-slate-500 ml-1">
-                            +{profile.interests[0].interests.length - 3}
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                  )}
-
-                  <button className="mt-4 w-full bg-gradient-to-r from-blue-600 to-amber-500 text-white py-2 rounded-lg hover:from-blue-700 hover:to-amber-600 transition font-semibold text-sm">
-                    View Profile
-                  </button>
                 </div>
               </div>
             ))}
