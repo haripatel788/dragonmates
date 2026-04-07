@@ -1,3 +1,6 @@
+// Author: Patrick Melan, April 7 2026
+// Mod by Patrick Melan, April 7 2026
+
 import { supabaseAdmin } from "@/lib/supabase";
 import { NextResponse } from "next/server";
 
