@@ -13,10 +13,11 @@ const defaultPrefs = {
 };
 
 export default function PreferencesPage() {
-  const [prefs, setPrefs] = useState({ ...defaultPrefs });
-  const [savedProfile, setSavedProfile] = useState<null | typeof defaultPrefs>(null);
-  const [matchScore, setMatchScore] = useState<number | null>(null);
-  const [saveMsg, setSaveMsg] = useState("");
+ const [prefs, setPrefs] = useState({ ...defaultPrefs });
+const [savedProfile, setSavedProfile] = useState<null | typeof defaultPrefs>(null);
+const [matchScore, setMatchScore] = useState<number | null>(null);
+const [saveMsg, setSaveMsg] = useState("");
+const [lastSaved, setLastSaved] = useState<string | null>(null);
 
   function handleChange(e: React.ChangeEvent<HTMLSelectElement | HTMLInputElement>) {
     setPrefs({ ...prefs, [e.target.name]: e.target.value });
