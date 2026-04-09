@@ -23,14 +23,13 @@ const [lastSaved, setLastSaved] = useState<string | null>(null);
     setPrefs({ ...prefs, [e.target.name]: e.target.value });
   }
 
-  function savePreferences() {
+function savePreferences() {
   localStorage.setItem("roommatePrefs", JSON.stringify(prefs));
   const time = new Date().toLocaleString("en-US", { month: "long", day: "numeric", hour: "numeric", minute: "2-digit" });
   localStorage.setItem("roommatePrefsTime", time);
   setLastSaved(time);
   setSaveMsg("Preferences saved!");
 }
-  }
 
   function loadPreferences() {
     const saved = localStorage.getItem("roommatePrefs");
@@ -44,6 +43,15 @@ const [lastSaved, setLastSaved] = useState<string | null>(null);
     setMatchScore(Math.floor(Math.random() * 40) + 60);
     setSaveMsg("");
   }
+  function clearPreferences() {
+  localStorage.removeItem("roommatePrefs");
+  localStorage.removeItem("roommatePrefsTime");
+  setPrefs({ ...defaultPrefs });
+  setSavedProfile(null);
+  setMatchScore(null);
+  setLastSaved(null);
+  setSaveMsg("Preferences cleared!");
+}
 
   const fields = [
     {
