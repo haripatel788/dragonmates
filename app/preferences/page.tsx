@@ -24,10 +24,12 @@ const [lastSaved, setLastSaved] = useState<string | null>(null);
   }
 
   function savePreferences() {
-    localStorage.setItem("roommatePrefs", JSON.stringify(prefs));
-    setSaveMsg("Preferences saved!");
-    setSavedProfile(null);
-    setMatchScore(null);
+  localStorage.setItem("roommatePrefs", JSON.stringify(prefs));
+  const time = new Date().toLocaleString("en-US", { month: "long", day: "numeric", hour: "numeric", minute: "2-digit" });
+  localStorage.setItem("roommatePrefsTime", time);
+  setLastSaved(time);
+  setSaveMsg("Preferences saved!");
+}
   }
 
   function loadPreferences() {
