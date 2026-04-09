@@ -31,19 +31,27 @@ function savePreferences() {
   setSaveMsg("Preferences saved!");
 }
 
-  function loadPreferences() {
-    const saved = localStorage.getItem("roommatePrefs");
-    if (!saved) {
-      setSaveMsg("No saved preferences found.");
-      return;
-    }
+function loadPreferences() {
+  const saved = localStorage.getItem("roommatePrefs");
+  const savedTime = localStorage.getItem("roommatePrefsTime");
+  if (saved) {
     const parsed = JSON.parse(saved);
     setPrefs(parsed);
     setSavedProfile(parsed);
-    setMatchScore(Math.floor(Math.random() * 40) + 60);
-    setSaveMsg("");
+    setSaveMsg("Preferences loaded!");
+    setLastSaved(savedTime || null);
+
+    // Stub: set a fake match score for demonstration
+    setMatchScore(87);
+  } else {
+    setSaveMsg("No saved preferences found.");
+    setSavedProfile(null);
+    setMatchScore(null);
+    setLastSaved(null);
   }
-  function clearPreferences() {
+}
+
+function clearPreferences() {
   localStorage.removeItem("roommatePrefs");
   localStorage.removeItem("roommatePrefsTime");
   setPrefs({ ...defaultPrefs });
@@ -170,27 +178,6 @@ function savePreferences() {
               />
             </div>
           </div>
-
-          <div className="px-6 pb-6 flex gap-3">
-            <button
-              onClick={savePreferences}
-              className="flex-1 bg-[#07294d] hover:bg-[#0a3a6e] text-white text-sm font-semibold py-2.5 rounded-lg transition shadow-sm"
-            >
-              Save Preferences
-            </button>
-            <button
-              onClick={loadPreferences}
-              className="flex-1 bg-[#ffc600] hover:bg-[#e6b200] text-[#07294d] text-sm font-semibold py-2.5 rounded-lg transition shadow-sm"
-            >
-              Load Saved
-            </button>
-          </div>
-
-          {saveMsg && (
-            <div className="mx-6 mb-6 px-4 py-2.5 bg-green-50 border border-green-200 rounded-lg text-green-700 text-sm font-medium">
-              {saveMsg}
-            </div>
-          )}
         </div>
 
         {/* Saved Profile Card */}
@@ -243,6 +230,15 @@ function savePreferences() {
             )}
           </div>
         </div>
+
+        {/* Button Container */}
+        <div className="flex gap-3 justify-center">
+          <button onClick={savePreferences} className="px-6 py-2 bg-[#ffc600] text-[#07294d] font-semibold rounded-lg hover:bg-yellow-500 transition">Save</button>
+          <button onClick={loadPreferences} className="px-6 py-2 bg-[#07294d] text-white font-semibold rounded-lg hover:bg-blue-900 transition">Load</button>
+          <button onClick={clearPreferences} className="px-6 py-2 bg-gray-300 text-gray-800 font-semibold rounded-lg hover:bg-gray-400 transition">Clear</button>
+        </div>
+        {saveMsg && <p className="text-center text-sm text-gray-600">{saveMsg}</p>}
+        {lastSaved && <p className="text-center text-xs text-gray-400">Last saved: {lastSaved}</p>}
 
       </div>
     </div>
