@@ -1,0 +1,43 @@
+name: Manual Sync from Drexel GitLab
+
+on:
+  workflow_dispatch:
+
+jobs:
+  sync-code:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout the GitHub repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 
+
+      - name: Configure Git Identity
+        run: |
+          git config --global user.name "GitHub Actions Bot"
+          git config --global user.email "actions@github.com"
+
+      - name: Pull from GitLab and Push to GitHub
+        run: |
+          # 1. Back up the .github folder to a temporary directory outside the repo
+          cp -r .github /tmp/.github_backup
+
+          # 2. Add the Drexel GitLab repo as a remote
+          git remote add gitlab https://${{ secrets.GITLAB_USERNAME }}:${{ secrets.GITLAB_TOKEN }}@gitlab.cci.drexel.edu/cid/2526/ws1023/60/gd5/dragonmates.git
+          
+          # 3. Fetch the latest code from GitLab
+          git fetch gitlab
+          
+          # 4. Force your current GitHub main branch to exactly match the GitLab main branch
+          git reset --hard gitlab/main
+          
+          # 5. Restore the .github folder from the backup
+          cp -r /tmp/.github_backup .github
+          
+          # 6. Stage and commit the .github folder back into the repo
+          git add .github/
+          git commit -m "Preserve GitHub Actions workflow" || echo "No changes to commit"
+          
+          # 7. Force push the changes to GitHub
+          git push origin main --force
