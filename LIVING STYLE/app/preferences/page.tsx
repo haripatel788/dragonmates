@@ -80,6 +80,16 @@ export default function PreferencesPage() {
       ],
     },
     {
+  label: "Social Battery",
+  name: "socialBattery",
+  options: [
+    { value: "", label: "Select..." },
+    { value: "introverted", label: "Introverted" },
+    { value: "ambivert", label: "Ambivert" },
+    { value: "extroverted", label: "Extroverted" },
+  ],
+},
+    {
       label: "Pets",
       name: "pets",
       options: [
